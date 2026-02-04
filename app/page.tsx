@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HomeStats } from "../components/HomeStats";
+import { DailyChallengeCard } from "../components/DailyChallengeCard";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       </div>
 
       <HomeStats />
+      <DailyChallengeCard />
 
       <div className="mt-12 flex flex-wrap justify-center gap-4">
         <Link

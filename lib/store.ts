@@ -2,10 +2,11 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, Progression, Wallet, Inventory, EquipSlot } from "./types";
+import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
 import { getUnlockedAchievementIds } from "./achievements";
 import { platform } from "./platform-events";
 import { getShopItemById, getEquipSlotForItemType } from "./shop";
+import { getTodayDateKey, applyDailyProgress } from "./daily-challenges";
 
 const STORAGE_KEY = "mad-games-store";
 
@@ -101,6 +102,13 @@ const defaultWallet: Wallet = {
   madCoins: 0,
 };
 
+const defaultDailyChallenge: DailyChallengeState = {
+  completedDailyDates: [],
+  dailyGamesPlayedCount: 0,
+  dailyGamesPlayedDate: "",
+  dailyBeatRecordDate: null,
+};
+
 const defaultInventory: Inventory = {
   purchasedItemIds: [],
   equipped: {
@@ -164,6 +172,7 @@ type StoreState = {
   coreDefenseStats: CoreDefenseStats;
   shiftStats: ShiftStats;
   progression: Progression;
+  dailyChallenge: DailyChallengeState;
   unlockedAchievementIds: string[];
   wallet: Wallet;
   inventory: Inventory;
@@ -216,6 +225,7 @@ function getDefaultState() {
     coreDefenseStats: defaultCoreDefenseStats,
     shiftStats: defaultShiftStats,
     progression: defaultProgression,
+    dailyChallenge: defaultDailyChallenge,
     unlockedAchievementIds: [] as string[],
     wallet: defaultWallet,
     inventory: defaultInventory,
@@ -298,13 +308,16 @@ export const useStore = create<StoreState>()(
             gamesPlayed: state.snakeStats.gamesPlayed + 1,
             totalTimeMs: state.snakeStats.totalTimeMs + timePlayedMs,
           };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "snake", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
           return {
             ...state,
             snakeStats,
             progression,
             wallet,
+            dailyChallenge,
             unlockedAchievementIds: mergeAchievementIds(state, { progression, snakeStats }),
           };
         });
@@ -347,13 +360,17 @@ export const useStore = create<StoreState>()(
           const nextLevel = xpToLevel(nextXp);
           coins += nextLevel > prevLevel ? COINS_LEVEL_UP : 0;
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          const dateKey = getTodayDateKey();
+          const pongIsNewRecord = (won && pongStats.bestStreak > (prev.bestStreak ?? 0)) || (bestSurvivalTimeMs > (prev.bestSurvivalTimeMs ?? 0));
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "pong", isNewRecord: pongIsNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
           return {
             ...state,
             pongStats,
             progression,
             wallet,
+            dailyChallenge,
             unlockedAchievementIds: mergeAchievementIds(state, { progression, pongStats }),
           };
         });
@@ -374,9 +391,11 @@ export const useStore = create<StoreState>()(
           const breakoutStats = levelCompleteOnly
             ? { ...prev, bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore }, maxLevelReached: maxLevel }
             : { ...prev, bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore }, maxLevelReached: maxLevel, gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: prev.totalTimeMs + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, breakoutStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, breakoutStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "breakout", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, breakoutStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, breakoutStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -391,9 +410,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const dodgeStats = { ...prev, bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, dodgeStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, dodgeStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "dodge", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, dodgeStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, dodgeStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -410,7 +431,16 @@ export const useStore = create<StoreState>()(
           const reactorStats = { ...prev, bestPulsesSurvived: Math.max(prev.bestPulsesSurvived ?? 0, pulsesSurvived), bestCombo: Math.max(prev.bestCombo ?? 0, bestCombo), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
           const progression = { totalXp: nextXp };
           const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, reactorStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, reactorStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "reactor", pulsesSurvived, isNewRecord });
+          return {
+            ...state,
+            reactorStats,
+            progression: { totalXp: nextXp + xpReward },
+            wallet: { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward },
+            dailyChallenge,
+            unlockedAchievementIds: mergeAchievementIds(state, { progression: { totalXp: nextXp + xpReward }, reactorStats }),
+          };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -425,9 +455,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const orbitStats = { ...prev, bestScore: Math.max(prev.bestScore ?? 0, score), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, orbitStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, orbitStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "orbit", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, orbitStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, orbitStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -442,9 +474,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const pulseDashStats = { ...prev, bestDistance: Math.max(prev.bestDistance ?? 0, distance), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, pulseDashStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, pulseDashStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "pulse-dash", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, pulseDashStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, pulseDashStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -459,9 +493,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const memoryGlitchStats = { ...prev, bestRounds: Math.max(prev.bestRounds ?? 0, rounds), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, memoryGlitchStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, memoryGlitchStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "memory-glitch", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, memoryGlitchStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, memoryGlitchStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -476,9 +512,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const coreDefenseStats = { ...prev, bestStreak: Math.max(prev.bestStreak ?? 0, streak), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, coreDefenseStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, coreDefenseStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "core-defense", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, coreDefenseStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, coreDefenseStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -493,9 +531,11 @@ export const useStore = create<StoreState>()(
           const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
           if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
           const shiftStats = { ...prev, bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
-          const progression = { totalXp: nextXp };
-          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
-          return { ...state, shiftStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, shiftStats }) };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "shift", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return { ...state, shiftStats, progression, wallet, dailyChallenge, unlockedAchievementIds: mergeAchievementIds(state, { progression, shiftStats }) };
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
@@ -601,6 +641,7 @@ export const useStore = create<StoreState>()(
         coreDefenseStats: state.coreDefenseStats,
         shiftStats: state.shiftStats,
         progression: state.progression,
+        dailyChallenge: state.dailyChallenge ?? defaultDailyChallenge,
         unlockedAchievementIds: state.unlockedAchievementIds,
         wallet: state.wallet ?? defaultWallet,
         inventory: state.inventory ?? defaultInventory,

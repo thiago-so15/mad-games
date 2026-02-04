@@ -225,6 +225,18 @@ export interface AchievementDef {
   rarity: AchievementRarity;
 }
 
+/** Estado de retos diarios (local, por fecha) */
+export interface DailyChallengeState {
+  /** Fechas (YYYY-MM-DD) en que el usuario completó el reto diario */
+  completedDailyDates: string[];
+  /** Partidas jugadas hoy (para reto "play_3_games") */
+  dailyGamesPlayedCount: number;
+  /** Fecha del último conteo (YYYY-MM-DD) para resetear al cambiar de día */
+  dailyGamesPlayedDate: string;
+  /** Fecha en que el usuario superó un récord hoy (para "beat_any_record"), o null */
+  dailyBeatRecordDate: string | null;
+}
+
 /** Eventos que la plataforma maneja; los juegos emiten, no acceden al store directo */
 export type GameEventType =
   | "gameStart"

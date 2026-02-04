@@ -60,7 +60,7 @@ export function Nav() {
           aria-label="MAD GAMES - Inicio"
         >
           <Image
-            src="/mad-games-logo.png"
+            src="/mad-games-logo-tr.png"
             alt=""
             width={40}
             height={40}

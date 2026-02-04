@@ -4,7 +4,7 @@
  */
 
 import type { AchievementDef } from "./types";
-import type { SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats } from "./types";
+import type { SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, OverloadStats, PolarStats } from "./types";
 
 /** Estado mínimo necesario para evaluar logros (evita dependencia circular con store) */
 export interface StoreStateForAchievements {
@@ -20,6 +20,8 @@ export interface StoreStateForAchievements {
   memoryGlitchStats?: MemoryGlitchStats;
   coreDefenseStats?: CoreDefenseStats;
   shiftStats?: ShiftStats;
+  overloadStats?: OverloadStats;
+  polarStats?: PolarStats;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
@@ -39,6 +41,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "memory_glitch_first", icon: "🧠", name: "Primer glitch", description: "Jugaste tu primera partida de Memory Glitch", gameSlug: "memory-glitch", rarity: "common" },
   { id: "core_defense_first", icon: "💣", name: "Primera defensa", description: "Jugaste tu primera partida de Core Defense", gameSlug: "core-defense", rarity: "common" },
   { id: "shift_first", icon: "🌀", name: "Primer shift", description: "Jugaste tu primera partida de Shift", gameSlug: "shift", rarity: "common" },
+  { id: "overload_first", icon: "🔥", name: "Primera sobrecarga", description: "Jugaste tu primera partida de Overload", gameSlug: "overload", rarity: "common" },
+  { id: "polar_first", icon: "🧲", name: "Primera polaridad", description: "Jugaste tu primera partida de Polar", gameSlug: "polar", rarity: "common" },
 ];
 
 /** Cuenta total de récords personales superados (estimado por juegos con bestScore/bestTime) */
@@ -56,6 +60,8 @@ function countPersonalRecords(state: StoreStateForAchievements): number {
   if ((state.memoryGlitchStats?.gamesPlayed ?? 0) > 0 && (state.memoryGlitchStats?.bestRounds ?? 0) > 0) count += 1;
   if ((state.coreDefenseStats?.gamesPlayed ?? 0) > 0 && (state.coreDefenseStats?.bestStreak ?? 0) > 0) count += 1;
   if ((state.shiftStats?.gamesPlayed ?? 0) > 0 && (state.shiftStats?.bestSurvivalTimeMs ?? 0) > 0) count += 1;
+  if ((state.overloadStats?.gamesPlayed ?? 0) > 0 && (state.overloadStats?.bestScore ?? 0) > 0) count += 1;
+  if ((state.polarStats?.gamesPlayed ?? 0) > 0 && (state.polarStats?.bestScore ?? 0) > 0) count += 1;
   return count;
 }
 
@@ -77,7 +83,9 @@ export function getUnlockedAchievementIds(state: StoreStateForAchievements): str
     (state.pulseDashStats?.gamesPlayed ?? 0) +
     (state.memoryGlitchStats?.gamesPlayed ?? 0) +
     (state.coreDefenseStats?.gamesPlayed ?? 0) +
-    (state.shiftStats?.gamesPlayed ?? 0);
+    (state.shiftStats?.gamesPlayed ?? 0) +
+    (state.overloadStats?.gamesPlayed ?? 0) +
+    (state.polarStats?.gamesPlayed ?? 0);
   const level = getLevel(state.progression.totalXp);
   const records = countPersonalRecords(state);
 
@@ -97,6 +105,8 @@ export function getUnlockedAchievementIds(state: StoreStateForAchievements): str
   if ((state.memoryGlitchStats?.gamesPlayed ?? 0) >= 1) unlocked.add("memory_glitch_first");
   if ((state.coreDefenseStats?.gamesPlayed ?? 0) >= 1) unlocked.add("core_defense_first");
   if ((state.shiftStats?.gamesPlayed ?? 0) >= 1) unlocked.add("shift_first");
+  if ((state.overloadStats?.gamesPlayed ?? 0) >= 1) unlocked.add("overload_first");
+  if ((state.polarStats?.gamesPlayed ?? 0) >= 1) unlocked.add("polar_first");
 
   return Array.from(unlocked);
 }

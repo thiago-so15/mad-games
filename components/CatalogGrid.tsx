@@ -16,7 +16,9 @@ function getPersonalStatsLabel(
   pulseDashStats: { gamesPlayed: number; bestDistance: number } | undefined,
   memoryGlitchStats: { gamesPlayed: number; bestRounds: number } | undefined,
   coreDefenseStats: { gamesPlayed: number; bestStreak: number } | undefined,
-  shiftStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined
+  shiftStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined,
+  overloadStats: { gamesPlayed: number; bestScore: number; bestCombo: number } | undefined,
+  polarStats: { gamesPlayed: number; bestScore: number; bestCombo: number } | undefined
 ): string | null {
   if (slug === "snake") {
     const best = Math.max(0, ...Object.values(snakeStats.bestScoreByMode));
@@ -57,6 +59,12 @@ function getPersonalStatsLabel(
   if (slug === "shift" && shiftStats?.gamesPlayed) {
     return shiftStats.bestSurvivalTimeMs ? `Mejor: ${Math.floor(shiftStats.bestSurvivalTimeMs / 1000)}s` : `${shiftStats.gamesPlayed} partidas`;
   }
+  if (slug === "overload" && overloadStats?.gamesPlayed) {
+    return overloadStats.bestScore ? `Mejor: ${overloadStats.bestScore} pts · Racha: ${overloadStats.bestCombo}` : `${overloadStats.gamesPlayed} partidas`;
+  }
+  if (slug === "polar" && polarStats?.gamesPlayed) {
+    return polarStats.bestScore ? `Mejor: ${polarStats.bestScore} · Racha: ${polarStats.bestCombo}` : `${polarStats.gamesPlayed} partidas`;
+  }
   return null;
 }
 
@@ -71,6 +79,8 @@ function getGamesPlayed(slug: string, store: ReturnType<typeof useStore.getState
   if (slug === "memory-glitch") return store.memoryGlitchStats?.gamesPlayed ?? 0;
   if (slug === "core-defense") return store.coreDefenseStats?.gamesPlayed ?? 0;
   if (slug === "shift") return store.shiftStats?.gamesPlayed ?? 0;
+  if (slug === "overload") return store.overloadStats?.gamesPlayed ?? 0;
+  if (slug === "polar") return store.polarStats?.gamesPlayed ?? 0;
   return 0;
 }
 
@@ -86,7 +96,9 @@ function hasPersonalRecord(
   pulseDashStats: { bestDistance: number } | undefined,
   memoryGlitchStats: { bestRounds: number } | undefined,
   coreDefenseStats: { bestStreak: number } | undefined,
-  shiftStats: { bestSurvivalTimeMs: number } | undefined
+  shiftStats: { bestSurvivalTimeMs: number } | undefined,
+  overloadStats: { bestScore: number } | undefined,
+  polarStats: { bestScore: number } | undefined
 ): boolean {
   if (slug === "snake") return Math.max(0, ...Object.values(snakeStats.bestScoreByMode)) > 0;
   if (slug === "pong") return pongStats.bestStreak > 0 || pongStats.bestSurvivalTimeMs > 0;
@@ -98,6 +110,8 @@ function hasPersonalRecord(
   if (slug === "memory-glitch") return (memoryGlitchStats?.bestRounds ?? 0) > 0;
   if (slug === "core-defense") return (coreDefenseStats?.bestStreak ?? 0) > 0;
   if (slug === "shift") return (shiftStats?.bestSurvivalTimeMs ?? 0) > 0;
+  if (slug === "overload") return (overloadStats?.bestScore ?? 0) > 0;
+  if (slug === "polar") return (polarStats?.bestScore ?? 0) > 0;
   return false;
 }
 
@@ -118,6 +132,8 @@ export function CatalogGrid() {
   const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
   const coreDefenseStats = useStore((s) => s.coreDefenseStats);
   const shiftStats = useStore((s) => s.shiftStats);
+  const overloadStats = useStore((s) => s.overloadStats);
+  const polarStats = useStore((s) => s.polarStats);
   const favoriteGameSlugs = useStore((s) => s.profile.favoriteGameSlugs);
   const lastPlayedSlug = useStore((s) => s.profile.lastPlayedGameSlug);
   const favorites = favoriteGameSlugs ?? [];
@@ -184,7 +200,9 @@ export function CatalogGrid() {
             pulseDashStats,
             memoryGlitchStats,
             coreDefenseStats,
-            shiftStats
+            shiftStats,
+            overloadStats,
+            polarStats
           );
           const isFavorite = favorites.includes(game.slug);
           const isLastPlayed = lastPlayed === game.slug;
@@ -201,7 +219,9 @@ export function CatalogGrid() {
             pulseDashStats,
             memoryGlitchStats,
             coreDefenseStats,
-            shiftStats
+            shiftStats,
+            overloadStats,
+            polarStats
           );
 
           return (

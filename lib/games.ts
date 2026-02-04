@@ -95,6 +95,24 @@ export const GAMES_CATALOG: GameMeta[] = [
     category: "habilidad",
     difficulty: 3,
   },
+  {
+    slug: "overload",
+    name: "Overload",
+    description: "El núcleo se sobrecarga. Liberá energía en la zona verde antes del 100%.",
+    icon: "🔥",
+    available: true,
+    category: "habilidad",
+    difficulty: 3,
+  },
+  {
+    slug: "polar",
+    name: "Polar",
+    description: "Núcleo con polaridad + o −. Coincidí con la polaridad del obstáculo en el impacto.",
+    icon: "🧲",
+    available: true,
+    category: "habilidad",
+    difficulty: 3,
+  },
 ];
 
 export function getGameBySlug(slug: string): GameMeta | undefined {

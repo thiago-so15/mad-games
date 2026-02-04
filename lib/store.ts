@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
+import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, OverloadStats, PolarStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
 import { getUnlockedAchievementIds } from "./achievements";
 import { platform } from "./platform-events";
 import { getShopItemById, getEquipSlotForItemType } from "./shop";
@@ -26,6 +26,8 @@ const defaultSettings: GameSettings = {
   memoryGlitchSpeedMultiplier: 1,
   coreDefenseSpeedMultiplier: 1,
   shiftSpeedMultiplier: 1,
+  overloadSpeedMultiplier: 1,
+  polarSpeedMultiplier: 1,
 };
 
 const defaultSnakeStats: SnakeStats = {
@@ -90,6 +92,20 @@ const defaultCoreDefenseStats: CoreDefenseStats = {
 
 const defaultShiftStats: ShiftStats = {
   bestSurvivalTimeMs: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultOverloadStats: OverloadStats = {
+  bestScore: 0,
+  bestCombo: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultPolarStats: PolarStats = {
+  bestScore: 0,
+  bestCombo: 0,
   gamesPlayed: 0,
   totalTimeMs: 0,
 };
@@ -171,6 +187,8 @@ type StoreState = {
   memoryGlitchStats: MemoryGlitchStats;
   coreDefenseStats: CoreDefenseStats;
   shiftStats: ShiftStats;
+  overloadStats: OverloadStats;
+  polarStats: PolarStats;
   progression: Progression;
   dailyChallenge: DailyChallengeState;
   unlockedAchievementIds: string[];
@@ -198,6 +216,8 @@ type StoreState = {
   updateMemoryGlitchStats: (params: { rounds: number; timePlayedMs: number }) => void;
   updateCoreDefenseStats: (params: { streak: number; timePlayedMs: number }) => void;
   updateShiftStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
+  updateOverloadStats: (params: { score: number; bestCombo: number; timePlayedMs: number }) => void;
+  updatePolarStats: (params: { score: number; bestCombo: number; timePlayedMs: number }) => void;
   mergeAchievements: () => void;
 };
 
@@ -224,6 +244,8 @@ function getDefaultState() {
     memoryGlitchStats: defaultMemoryGlitchStats,
     coreDefenseStats: defaultCoreDefenseStats,
     shiftStats: defaultShiftStats,
+    overloadStats: defaultOverloadStats,
+    polarStats: defaultPolarStats,
     progression: defaultProgression,
     dailyChallenge: defaultDailyChallenge,
     unlockedAchievementIds: [] as string[],
@@ -539,6 +561,70 @@ export const useStore = create<StoreState>()(
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
+      updateOverloadStats: ({ score, bestCombo, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.overloadStats;
+          const isNewRecord = score > (prev.bestScore ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const overloadStats = {
+            ...prev,
+            bestScore: Math.max(prev.bestScore ?? 0, score),
+            bestCombo: Math.max(prev.bestCombo ?? 0, bestCombo),
+            gamesPlayed: prev.gamesPlayed + 1,
+            totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs,
+          };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "overload", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return {
+            ...state,
+            overloadStats,
+            progression,
+            wallet,
+            dailyChallenge,
+            unlockedAchievementIds: mergeAchievementIds(state, { progression, overloadStats }),
+          };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      updatePolarStats: ({ score, bestCombo, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.polarStats;
+          const isNewRecord = score > (prev.bestScore ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const polarStats = {
+            ...prev,
+            bestScore: Math.max(prev.bestScore ?? 0, score),
+            bestCombo: Math.max(prev.bestCombo ?? 0, bestCombo),
+            gamesPlayed: prev.gamesPlayed + 1,
+            totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs,
+          };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "polar", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return {
+            ...state,
+            polarStats,
+            progression,
+            wallet,
+            dailyChallenge,
+            unlockedAchievementIds: mergeAchievementIds(state, { progression, polarStats }),
+          };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
       addScore: (entry) =>
         set((state) => ({
           scores: [
@@ -608,7 +694,9 @@ export const useStore = create<StoreState>()(
           (s.pulseDashStats?.gamesPlayed ?? 0) +
           (s.memoryGlitchStats?.gamesPlayed ?? 0) +
           (s.coreDefenseStats?.gamesPlayed ?? 0) +
-          (s.shiftStats?.gamesPlayed ?? 0);
+          (s.shiftStats?.gamesPlayed ?? 0) +
+          (s.overloadStats?.gamesPlayed ?? 0) +
+          (s.polarStats?.gamesPlayed ?? 0);
         const totalTimeMs =
           s.snakeStats.totalTimeMs +
           (s.pongStats.totalTimeMs ?? 0) +
@@ -619,7 +707,9 @@ export const useStore = create<StoreState>()(
           (s.pulseDashStats?.totalTimeMs ?? 0) +
           (s.memoryGlitchStats?.totalTimeMs ?? 0) +
           (s.coreDefenseStats?.totalTimeMs ?? 0) +
-          (s.shiftStats?.totalTimeMs ?? 0);
+          (s.shiftStats?.totalTimeMs ?? 0) +
+          (s.overloadStats?.totalTimeMs ?? 0) +
+          (s.polarStats?.totalTimeMs ?? 0);
         return { totalGames, totalTimeMs };
       },
     }),
@@ -640,6 +730,8 @@ export const useStore = create<StoreState>()(
         memoryGlitchStats: state.memoryGlitchStats,
         coreDefenseStats: state.coreDefenseStats,
         shiftStats: state.shiftStats,
+        overloadStats: state.overloadStats ?? defaultOverloadStats,
+        polarStats: state.polarStats ?? defaultPolarStats,
         progression: state.progression,
         dailyChallenge: state.dailyChallenge ?? defaultDailyChallenge,
         unlockedAchievementIds: state.unlockedAchievementIds,

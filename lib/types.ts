@@ -113,6 +113,8 @@ export interface GameSettings {
   memoryGlitchSpeedMultiplier: number;
   coreDefenseSpeedMultiplier: number;
   shiftSpeedMultiplier: number;
+  overloadSpeedMultiplier: number;
+  polarSpeedMultiplier: number;
   /** Efectos visuales: low = menos animaciones, high = completo */
   visualEffects: "low" | "high";
   /** Modo bajo rendimiento: menos partículas, animaciones reducidas */
@@ -206,6 +208,22 @@ export interface CoreDefenseStats {
 /** Estadísticas Shift (mejor tiempo supervivencia, partidas, tiempo total) */
 export interface ShiftStats {
   bestSurvivalTimeMs: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Overload (mejor score, mejor racha, partidas, tiempo total) */
+export interface OverloadStats {
+  bestScore: number;
+  bestCombo: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Polar (mejor score, mejor racha, partidas, tiempo total) */
+export interface PolarStats {
+  bestScore: number;
+  bestCombo: number;
   gamesPlayed: number;
   totalTimeMs: number;
 }

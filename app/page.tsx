@@ -8,7 +8,7 @@ export default function Home() {
     <div className="flex flex-col items-center text-center">
       <div className="animate-[fade-in_0.4s_ease-out]">
         <Image
-          src="/mad-games-logo.png"
+          src="/mad-games-logo-tr.png"
           alt="MAD GAMES"
           width={280}
           height={280}

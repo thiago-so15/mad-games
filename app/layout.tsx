@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MAD GAMES v4 — Arcade",
+  title: "Mad Games — Arcade",
   description: "Arcade moderno. Múltiples juegos, una plataforma. XP, niveles, logros. Sin backend.",
 };
 

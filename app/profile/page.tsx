@@ -25,7 +25,8 @@ export default function ProfilePage() {
   const dodgeStats = useStore((s) => s.dodgeStats);
   const reactorStats = useStore((s) => s.reactorStats);
   const totalXp = useStore((s) => s.progression.totalXp);
-  const unlockedIds = useStore((s) => s.unlockedAchievementIds ?? []);
+  const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
+  const unlockedIds = unlockedAchievementIds ?? [];
   const favorites = profile.favoriteGameSlugs ?? [];
   const lastPlayedSlug = profile.lastPlayedGameSlug ?? null;
 

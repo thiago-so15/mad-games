@@ -9,7 +9,7 @@ export function StartScreen({ onPlay }: StartScreenProps) {
     <div className="flex flex-col items-center gap-8 animate-[fade-in_0.3s_ease-out]">
       <h2 className="text-2xl font-bold text-white">Reactor Break</h2>
       <p className="text-zinc-400 text-center max-w-sm">
-        El reactor emite pulsos. Activa el escudo en el momento exacto para bloquearlos.
+        El reactor se carga, avisa con un flash y emite un pulso. Mantené el escudo activo exactamente cuando ocurra el pulso.
       </p>
 
       <button
@@ -20,7 +20,7 @@ export function StartScreen({ onPlay }: StartScreenProps) {
         Jugar
       </button>
 
-      <p className="text-xs text-zinc-500">Espacio o S: escudo · P: pausa</p>
+      <p className="text-xs text-zinc-500">Mantené Espacio o S = escudo activo · Soltá = inactivo · P: pausa</p>
     </div>
   );
 }

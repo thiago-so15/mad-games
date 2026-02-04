@@ -7,8 +7,22 @@ export function HomeStats() {
   const snakeStats = useStore((s) => s.snakeStats);
   const pongStats = useStore((s) => s.pongStats);
   const breakoutStats = useStore((s) => s.breakoutStats);
-  const totalGames = snakeStats.gamesPlayed + pongStats.gamesPlayed + breakoutStats.gamesPlayed;
-  const totalTimeMs = snakeStats.totalTimeMs + pongStats.totalTimeMs + breakoutStats.totalTimeMs;
+  const dodgeStats = useStore((s) => s.dodgeStats);
+  const reactorStats = useStore((s) => s.reactorStats);
+
+  const totalGames =
+    snakeStats.gamesPlayed +
+    pongStats.gamesPlayed +
+    breakoutStats.gamesPlayed +
+    (dodgeStats?.gamesPlayed ?? 0) +
+    (reactorStats?.gamesPlayed ?? 0);
+  const totalTimeMs =
+    snakeStats.totalTimeMs +
+    (pongStats.totalTimeMs ?? 0) +
+    breakoutStats.totalTimeMs +
+    (dodgeStats?.totalTimeMs ?? 0) +
+    (reactorStats?.totalTimeMs ?? 0);
+
   const { level, xpInLevel, xpNeeded } = getXpToNextLevel(totalXp);
   const progressPct = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
 

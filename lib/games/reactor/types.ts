@@ -1,31 +1,26 @@
 /**
- * Tipos para Reactor Break. Lógica desacoplada de la UI.
+ * Tipos Reactor Break. Regla única: escudo ACTIVO en el instante del pulso = éxito.
  */
 
-/** Estado del pulso: próximo, activo (ventana de hit), pasado */
-export type PulsePhase = "idle" | "warning" | "active" | "passed";
+/** Fases del ciclo: carga → señal previa → pulso (evaluación) → resultado */
+export type PulsePhase = "charge" | "warning" | "pulse" | "passed";
 
 export interface ReactorGameState {
-  /** Escudo activo (jugador debe tenerlo ON cuando el pulso sea "active") */
+  /** Escudo activo: true = mantiene presionado, false = soltado. Evaluado solo en el pulso. */
   shieldOn: boolean;
-  /** Fase actual del pulso */
   pulsePhase: PulsePhase;
-  /** Timestamp en que el pulso pasó a "active" (para ventana de hit) */
-  pulseActiveAt: number;
-  /** Timestamp próximo pulso (o inicio de warning) */
-  nextPulseAt: number;
-  /** Pulsos superados en esta partida */
+  /** Inicio del ciclo actual (fase de carga) */
+  cycleStartAt: number;
+  /** Fin del breve estado "passed" antes del siguiente ciclo */
+  passedUntil: number;
+  /** Hasta este timestamp el escudo no puede activarse (enfriamiento tras un éxito). */
+  shieldCooldownUntil: number;
   pulsesSurvived: number;
-  /** Mejor racha de pulsos en esta partida */
   bestCombo: number;
-  /** Racha actual */
   currentCombo: number;
   phase: "playing" | "gameOver";
   gameOverReason: "miss" | null;
   gameStartTime: number;
   paused: boolean;
-  /** Nivel de dificultad (afecta velocidad y ritmo) */
   difficultyLevel: number;
-  /** Falso pulso visual (no cuenta como hit si fallas) */
-  isFakePulse: boolean;
 }

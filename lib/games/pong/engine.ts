@@ -228,7 +228,8 @@ export function tick(
   paddleLeft.y = clamp(paddleLeft.y + paddleLeft.vy * dtSec * 60, 0, leftMaxY);
   paddleRight.y = clamp(paddleRight.y + paddleRight.vy * dtSec * 60, 0, rightMaxY);
 
-  if (state.mode === "vsAi") {
+  // IA controla la pala derecha en vsAi y en classic (un jugador vs computadora)
+  if (state.mode === "vsAi" || state.mode === "classic") {
     const reaction = AI_REACTION[state.aiDifficulty] ?? 0.7;
     const err = AI_ERROR[state.aiDifficulty] ?? 0.2;
     const targetY = ball.pos.y - rightEffectiveHeight / 2 + (Math.random() - 0.5) * rightEffectiveHeight * err;

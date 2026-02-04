@@ -61,8 +61,10 @@ export function CatalogGrid() {
   const breakoutStats = useStore((s) => s.breakoutStats);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const reactorStats = useStore((s) => s.reactorStats);
-  const favorites = useStore((s) => s.profile.favoriteGameSlugs ?? []);
-  const lastPlayedSlug = useStore((s) => s.profile.lastPlayedGameSlug ?? null);
+  const favoriteGameSlugs = useStore((s) => s.profile.favoriteGameSlugs);
+  const lastPlayedSlug = useStore((s) => s.profile.lastPlayedGameSlug);
+  const favorites = favoriteGameSlugs ?? [];
+  const lastPlayed = lastPlayedSlug ?? null;
   const toggleFavorite = useStore((s) => s.toggleFavorite);
   const getState = useStore.getState;
 
@@ -77,11 +79,11 @@ export function CatalogGrid() {
       const aFav = favSet.has(a.slug) ? 1 : 0;
       const bFav = favSet.has(b.slug) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
-      if (lastPlayedSlug === a.slug) return -1;
-      if (lastPlayedSlug === b.slug) return 1;
+      if (lastPlayed === a.slug) return -1;
+      if (lastPlayed === b.slug) return 1;
       return 0;
     });
-  }, [categoryFilter, difficultyFilter, favorites, lastPlayedSlug]);
+  }, [categoryFilter, difficultyFilter, favorites, lastPlayed]);
 
   return (
     <>
@@ -123,7 +125,7 @@ export function CatalogGrid() {
             reactorStats
           );
           const isFavorite = favorites.includes(game.slug);
-          const isLastPlayed = lastPlayedSlug === game.slug;
+          const isLastPlayed = lastPlayed === game.slug;
           const gamesPlayed = getGamesPlayed(game.slug, getState());
           const isNew = gamesPlayed === 0;
 

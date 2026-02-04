@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HomeStats } from "@/components/HomeStats";
+import { HomeStats } from "../components/HomeStats";
 
 export default function Home() {
   return (

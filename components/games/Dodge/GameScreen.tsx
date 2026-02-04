@@ -15,6 +15,8 @@ interface GameScreenProps {
 
 export function GameScreen({ state, onPause }: GameScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,22 +37,34 @@ export function GameScreen({ state, onPause }: GameScreenProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#0a0a0a";
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const draw = () => {
+      const s = stateRef.current;
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    for (const o of state.obstacles) {
-      ctx.fillStyle = "#dc2626";
-      ctx.fillRect(o.pos.x - o.size / 2, o.pos.y - o.size / 2, o.size, o.size);
-    }
+      for (const o of s.obstacles) {
+        ctx.fillStyle = "#dc2626";
+        ctx.fillRect(o.pos.x - o.size / 2, o.pos.y - o.size / 2, o.size, o.size);
+      }
 
-    ctx.fillStyle = "#fafafa";
-    ctx.fillRect(
-      state.player.x - PLAYER_SIZE / 2,
-      state.player.y - PLAYER_SIZE / 2,
-      PLAYER_SIZE,
-      PLAYER_SIZE
-    );
-  }, [state]);
+      ctx.fillStyle = "#fafafa";
+      ctx.fillRect(
+        s.player.x - PLAYER_SIZE / 2,
+        s.player.y - PLAYER_SIZE / 2,
+        PLAYER_SIZE,
+        PLAYER_SIZE
+      );
+    };
+
+    draw();
+    let raf = 0;
+    const loop = () => {
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const seconds = Math.floor(state.survivalTimeMs / 1000);
 

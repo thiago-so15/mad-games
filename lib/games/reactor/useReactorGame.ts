@@ -1,33 +1,49 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tick, toggleShield as engineToggleShield, togglePause as engineTogglePause, createInitialState } from "./engine";
+import { tick, setShield as engineSetShield, togglePause as engineTogglePause, createInitialState } from "./engine";
+
+const SHIELD_KEYS = new Set([" ", "Enter", "s", "S"]);
 
 export function useReactorGame(speedMultiplier: number) {
   const [state, setState] = useState(() => createInitialState(speedMultiplier));
-  const lastTimeRef = useRef(0);
   const rafRef = useRef(0);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === " " || e.key === "Enter" || e.key === "s" || e.key === "S") {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (SHIELD_KEYS.has(e.key)) {
         e.preventDefault();
-        setState((s) => engineToggleShield(s));
+        setState((s) => engineSetShield(s, true, Date.now()));
       }
       if (e.key === "p" || e.key === "P") {
         e.preventDefault();
         setState((s) => engineTogglePause(s));
       }
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (SHIELD_KEYS.has(e.key)) {
+        e.preventDefault();
+        setState((s) => engineSetShield(s, false));
+      }
+    };
+    const handleBlur = () => {
+      setState((s) => engineSetShield(s, false));
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
   }, []);
 
   useEffect(() => {
     if (state.phase !== "playing" || state.paused) return;
 
-    const loop = (now: number) => {
-      setState((s) => tick(s, now, speedMultiplier));
+    const loop = () => {
+      setState((s) => tick(s, Date.now(), speedMultiplier));
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
@@ -36,16 +52,15 @@ export function useReactorGame(speedMultiplier: number) {
 
   const start = useCallback(() => {
     setState(createInitialState(speedMultiplier));
-    lastTimeRef.current = 0;
   }, [speedMultiplier]);
 
-  const toggleShield = useCallback(() => {
-    setState((s) => engineToggleShield(s));
+  const setShield = useCallback((on: boolean) => {
+    setState((s) => engineSetShield(s, on));
   }, []);
 
   const togglePause = useCallback(() => {
     setState((s) => engineTogglePause(s));
   }, []);
 
-  return { state, start, toggleShield, togglePause };
+  return { state, start, setShield, togglePause };
 }

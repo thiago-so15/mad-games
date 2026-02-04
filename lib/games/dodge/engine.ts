@@ -128,7 +128,9 @@ export function tick(
 
   const countForLevel = Math.max(1, 1 + Math.floor(difficultyLevel * OBSTACLES_PER_LEVEL));
   let nextSpawnAt = lastSpawnAt;
-  if (now - lastSpawnAt >= spawnInterval) {
+  // Primer spawn pronto si aún no hay obstáculos (evita esperar 1.2s)
+  const effectiveLastSpawn = state.obstacles.length === 0 && elapsed > 80 ? 0 : lastSpawnAt;
+  if (now - effectiveLastSpawn >= spawnInterval) {
     for (let i = 0; i < countForLevel; i++) {
       const newState: DodgeGameState = {
         ...state,

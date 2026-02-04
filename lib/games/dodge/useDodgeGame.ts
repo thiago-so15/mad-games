@@ -33,7 +33,8 @@ export function useDodgeGame(speedMultiplier: number) {
   useEffect(() => {
     if (state.phase !== "playing" || state.paused) return;
 
-    const loop = (now: number) => {
+    const loop = () => {
+      const now = Date.now();
       const dt = lastTimeRef.current ? now - lastTimeRef.current : 16;
       lastTimeRef.current = now;
       setState((s) => {
@@ -50,11 +51,8 @@ export function useDodgeGame(speedMultiplier: number) {
       });
       rafRef.current = requestAnimationFrame(loop);
     };
-    rafRef.current = requestAnimationFrame((now) => {
-      lastTimeRef.current = now;
-      lastSpawnRef.current = state.gameStartTime;
-      loop(now);
-    });
+    lastSpawnRef.current = state.gameStartTime;
+    rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [state.phase, state.paused, speedMultiplier, state.gameStartTime]);
 

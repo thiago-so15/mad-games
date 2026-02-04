@@ -80,8 +80,9 @@ export function ReactorGame({ slug }: ReactorGameProps) {
     <div className="relative">
       <GameScreen
         state={state}
+        speedMultiplier={speedMultiplier}
         onPause={togglePause}
-        screenShake={state.phase === "gameOver" && state.gameOverReason === "miss"}
+        showErrorFeedback={state.phase === "gameOver" && state.gameOverReason === "miss"}
       />
       {state.paused && (
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-950/80 backdrop-blur-sm">

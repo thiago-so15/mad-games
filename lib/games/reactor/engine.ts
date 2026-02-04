@@ -1,25 +1,32 @@
 /**
- * Motor Reactor Break: pulsos, ventana de hit, combo, dificultad progresiva. Sin UI.
+ * Motor Reactor Break. Una regla: escudo ACTIVO en el instante del pulso = éxito.
+ * Loop: charge → warning → pulse (evaluar) → passed → siguiente ciclo (más rápido).
  */
 
 import {
-  PULSE_ACTIVE_MS,
-  PULSE_WARNING_MS,
-  PULSE_INTERVAL_BASE_MS,
-  PULSE_INTERVAL_MIN_MS,
+  CHARGE_MS_BASE,
+  CHARGE_MS_MIN,
+  WARNING_MS,
+  PASSED_MS,
+  SHIELD_COOLDOWN_MS,
   DIFFICULTY_EVERY_PULSES,
-  FAKE_PULSE_CHANCE,
+  CHARGE_REDUCTION_PER_LEVEL,
 } from "./constants";
 import type { ReactorGameState } from "./types";
 
+function getChargeMs(level: number, speedMultiplier: number): number {
+  const reduction = level * CHARGE_REDUCTION_PER_LEVEL;
+  return Math.max(CHARGE_MS_MIN, (CHARGE_MS_BASE - reduction) / speedMultiplier);
+}
+
 export function createInitialState(speedMultiplier: number): ReactorGameState {
   const now = Date.now();
-  const interval = Math.max(PULSE_INTERVAL_MIN_MS, PULSE_INTERVAL_BASE_MS / speedMultiplier);
   return {
     shieldOn: false,
-    pulsePhase: "idle",
-    pulseActiveAt: 0,
-    nextPulseAt: now + interval - PULSE_WARNING_MS,
+    pulsePhase: "charge",
+    cycleStartAt: now,
+    passedUntil: 0,
+    shieldCooldownUntil: 0,
     pulsesSurvived: 0,
     bestCombo: 0,
     currentCombo: 0,
@@ -28,63 +35,90 @@ export function createInitialState(speedMultiplier: number): ReactorGameState {
     gameStartTime: now,
     paused: false,
     difficultyLevel: 0,
-    isFakePulse: false,
   };
-}
-
-function getPulseInterval(level: number, speedMultiplier: number): number {
-  const reduction = Math.min(level * 45, PULSE_INTERVAL_BASE_MS - PULSE_INTERVAL_MIN_MS);
-  return Math.max(PULSE_INTERVAL_MIN_MS, (PULSE_INTERVAL_BASE_MS - reduction) / speedMultiplier);
 }
 
 export function tick(state: ReactorGameState, now: number, speedMultiplier: number): ReactorGameState {
   if (state.phase !== "playing" || state.paused) return state;
 
-  let s = { ...state };
+  const chargeMs = getChargeMs(state.difficultyLevel, speedMultiplier);
+  const pulseTime = state.cycleStartAt + chargeMs + WARNING_MS;
 
-  if (s.pulsePhase === "idle" && now >= s.nextPulseAt) {
-    s.pulsePhase = "warning";
-    s.nextPulseAt = now + PULSE_WARNING_MS;
-  } else if (s.pulsePhase === "warning" && now >= s.nextPulseAt) {
-    s.pulsePhase = "active";
-    s.pulseActiveAt = now;
-    s.nextPulseAt = now + PULSE_ACTIVE_MS;
-  } else if (s.pulsePhase === "active") {
-    if (s.shieldOn) {
-      if (!s.isFakePulse) {
-        s.pulsesSurvived += 1;
-        s.currentCombo += 1;
-        s.bestCombo = Math.max(s.bestCombo, s.currentCombo);
-      }
-      s.pulsePhase = "passed";
-      s.nextPulseAt = now + PULSE_ACTIVE_MS * 0.3;
-    } else if (now - s.pulseActiveAt >= PULSE_ACTIVE_MS) {
-      if (!s.isFakePulse) {
-        s.phase = "gameOver";
-        s.gameOverReason = "miss";
-      } else {
-        s.pulsePhase = "passed";
-        s.nextPulseAt = now + PULSE_ACTIVE_MS * 0.3;
-      }
+  if (state.pulsePhase === "charge") {
+    if (now >= state.cycleStartAt + chargeMs) {
+      return { ...state, pulsePhase: "warning" };
     }
-  } else if (s.pulsePhase === "passed" && now >= s.nextPulseAt) {
-    if (!s.shieldOn) s.currentCombo = 0;
-    s.difficultyLevel = Math.floor(s.pulsesSurvived / DIFFICULTY_EVERY_PULSES);
-    const interval = getPulseInterval(s.difficultyLevel, speedMultiplier);
-    s.nextPulseAt = now + interval - PULSE_WARNING_MS;
-    s.pulsePhase = "idle";
-    s.isFakePulse = Math.random() < FAKE_PULSE_CHANCE;
+    return state;
   }
 
-  return s;
+  if (state.pulsePhase === "warning") {
+    if (now >= pulseTime) {
+      // PULSO: evaluar escudo solo en este instante
+      if (state.shieldOn) {
+        const newCombo = state.currentCombo + 1;
+        return {
+          ...state,
+          pulsePhase: "passed",
+          passedUntil: now + PASSED_MS,
+          shieldOn: false,
+          shieldCooldownUntil: now + SHIELD_COOLDOWN_MS,
+          pulsesSurvived: state.pulsesSurvived + 1,
+          currentCombo: newCombo,
+          bestCombo: Math.max(state.bestCombo, newCombo),
+        };
+      }
+      return {
+        ...state,
+        phase: "gameOver",
+        gameOverReason: "miss",
+      };
+    }
+    return state;
+  }
+
+  if (state.pulsePhase === "passed") {
+    if (now >= state.passedUntil) {
+      const nextLevel = Math.floor((state.pulsesSurvived + 1) / DIFFICULTY_EVERY_PULSES);
+      return {
+        ...state,
+        pulsePhase: "charge",
+        cycleStartAt: now,
+        difficultyLevel: nextLevel,
+      };
+    }
+    return state;
+  }
+
+  return state;
 }
 
-export function toggleShield(state: ReactorGameState): ReactorGameState {
+/** Input en tiempo real: mantener = escudo activo, soltar = inactivo. Durante el cooldown no se puede activar. */
+export function setShield(state: ReactorGameState, on: boolean, now: number = 0): ReactorGameState {
   if (state.phase !== "playing") return state;
-  return { ...state, shieldOn: !state.shieldOn };
+  if (on && state.shieldCooldownUntil > 0 && now < state.shieldCooldownUntil) {
+    return { ...state, shieldOn: false };
+  }
+  return { ...state, shieldOn: on };
 }
 
 export function togglePause(state: ReactorGameState): ReactorGameState {
   if (state.phase !== "playing") return state;
   return { ...state, paused: !state.paused };
+}
+
+/** Progreso de la fase de carga (0 a 1) para animación. */
+export function getChargeProgress(state: ReactorGameState, now: number, speedMultiplier: number): number {
+  if (state.pulsePhase !== "charge") return 1;
+  const chargeMs = getChargeMs(state.difficultyLevel, speedMultiplier);
+  const elapsed = now - state.cycleStartAt;
+  return Math.min(1, elapsed / chargeMs);
+}
+
+/** Progreso de la señal previa (0 a 1). */
+export function getWarningProgress(state: ReactorGameState, now: number, speedMultiplier: number): number {
+  if (state.pulsePhase !== "warning") return state.pulsePhase === "pulse" || state.pulsePhase === "passed" ? 1 : 0;
+  const chargeMs = getChargeMs(state.difficultyLevel, speedMultiplier);
+  const warningStart = state.cycleStartAt + chargeMs;
+  const elapsed = now - warningStart;
+  return Math.min(1, elapsed / WARNING_MS);
 }

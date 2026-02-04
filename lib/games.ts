@@ -32,6 +32,24 @@ export const GAMES_CATALOG: GameMeta[] = [
     category: "arcade",
     difficulty: 2,
   },
+  {
+    slug: "dodge",
+    name: "Dodge Madness",
+    description: "Esquiva obstáculos que vienen desde los bordes. Sobrevive el mayor tiempo posible.",
+    icon: "🕹️",
+    available: true,
+    category: "arcade",
+    difficulty: 2,
+  },
+  {
+    slug: "reactor",
+    name: "Reactor Break",
+    description: "Activa el escudo en el momento exacto cuando el reactor emite pulsos.",
+    icon: "⚡",
+    available: true,
+    category: "habilidad",
+    difficulty: 3,
+  },
 ];
 
 export function getGameBySlug(slug: string): GameMeta | undefined {

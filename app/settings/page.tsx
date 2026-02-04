@@ -21,10 +21,14 @@ export default function SettingsPage() {
         snakeSpeedMultiplier: 1,
         pongSpeedMultiplier: 1,
         breakoutSpeedMultiplier: 1,
+        dodgeSpeedMultiplier: 1,
+        reactorSpeedMultiplier: 1,
       },
       snakeStats: { bestScoreByMode: {}, gamesPlayed: 0, totalTimeMs: 0 },
       pongStats: { gamesPlayed: 0, wins: 0, losses: 0, currentStreak: 0, bestStreak: 0, bestSurvivalTimeMs: 0, totalTimeMs: 0 },
       breakoutStats: { bestScoreByMode: {}, maxLevelReached: 0, gamesPlayed: 0, totalTimeMs: 0 },
+      dodgeStats: { bestSurvivalTimeMs: 0, gamesPlayed: 0, totalTimeMs: 0 },
+      reactorStats: { bestPulsesSurvived: 0, bestCombo: 0, gamesPlayed: 0, totalTimeMs: 0 },
       progression: { totalXp: 0 },
     });
   };

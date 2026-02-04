@@ -48,6 +48,8 @@ export interface GameSettings {
   snakeSpeedMultiplier: number;
   pongSpeedMultiplier: number;
   breakoutSpeedMultiplier: number;
+  dodgeSpeedMultiplier: number;
+  reactorSpeedMultiplier: number;
 }
 
 /** Progresión global: XP y nivel (calculado) */
@@ -77,6 +79,21 @@ export interface PongStats {
 export interface BreakoutStats {
   bestScoreByMode: Partial<Record<"campaign" | "endless" | "challenge", number>>;
   maxLevelReached: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Dodge Madness (mejor tiempo de supervivencia, partidas, tiempo total) */
+export interface DodgeStats {
+  bestSurvivalTimeMs: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Reactor Break (mejor pulsos, mejor racha, partidas, tiempo total) */
+export interface ReactorStats {
+  bestPulsesSurvived: number;
+  bestCombo: number;
   gamesPlayed: number;
   totalTimeMs: number;
 }

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, Progression } from "./types";
+import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, Progression } from "./types";
 
 const STORAGE_KEY = "mad-games-store";
 
@@ -13,6 +13,8 @@ const defaultSettings: GameSettings = {
   snakeSpeedMultiplier: 1,
   pongSpeedMultiplier: 1,
   breakoutSpeedMultiplier: 1,
+  dodgeSpeedMultiplier: 1,
+  reactorSpeedMultiplier: 1,
 };
 
 const defaultSnakeStats: SnakeStats = {
@@ -34,6 +36,19 @@ const defaultPongStats: PongStats = {
 const defaultBreakoutStats: BreakoutStats = {
   bestScoreByMode: {},
   maxLevelReached: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultDodgeStats: DodgeStats = {
+  bestSurvivalTimeMs: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultReactorStats: ReactorStats = {
+  bestPulsesSurvived: 0,
+  bestCombo: 0,
   gamesPlayed: 0,
   totalTimeMs: 0,
 };
@@ -71,6 +86,8 @@ type StoreState = {
   snakeStats: SnakeStats;
   pongStats: PongStats;
   breakoutStats: BreakoutStats;
+  dodgeStats: DodgeStats;
+  reactorStats: ReactorStats;
   progression: Progression;
   setProfile: (partial: Partial<UserProfile>) => void;
   setSettings: (partial: Partial<GameSettings>) => void;
@@ -81,6 +98,8 @@ type StoreState = {
   updateSnakeStats: (params: { mode: "classic" | "timeAttack" | "hardcore"; score: number; timePlayedMs: number }) => void;
   updatePongStats: (params: { won?: boolean; survivalTimeMs?: number; timePlayedMs?: number }) => void;
   updateBreakoutStats: (params: { mode: "campaign" | "endless" | "challenge"; score: number; levelReached: number; timePlayedMs: number; levelCompleteOnly?: boolean }) => void;
+  updateDodgeStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
+  updateReactorStats: (params: { pulsesSurvived: number; bestCombo: number; timePlayedMs: number }) => void;
 };
 
 const defaultProfile: UserProfile = {
@@ -97,6 +116,8 @@ function getDefaultState() {
     snakeStats: defaultSnakeStats,
     pongStats: defaultPongStats,
     breakoutStats: defaultBreakoutStats,
+    dodgeStats: defaultDodgeStats,
+    reactorStats: defaultReactorStats,
     progression: defaultProgression,
   };
 }
@@ -207,6 +228,39 @@ export const useStore = create<StoreState>()(
             progression: { totalXp: xp },
           };
         }),
+      updateDodgeStats: ({ survivalTimeMs, timePlayedMs }) =>
+        set((state) => {
+          const prev = state.dodgeStats;
+          const isNewRecord = survivalTimeMs > (prev.bestSurvivalTimeMs ?? 0);
+          return {
+            dodgeStats: {
+              ...prev,
+              bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs),
+              gamesPlayed: prev.gamesPlayed + 1,
+              totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs,
+            },
+            progression: {
+              totalXp: state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0),
+            },
+          };
+        }),
+      updateReactorStats: ({ pulsesSurvived, bestCombo, timePlayedMs }) =>
+        set((state) => {
+          const prev = state.reactorStats;
+          const isNewRecord = pulsesSurvived > (prev.bestPulsesSurvived ?? 0);
+          return {
+            reactorStats: {
+              ...prev,
+              bestPulsesSurvived: Math.max(prev.bestPulsesSurvived ?? 0, pulsesSurvived),
+              bestCombo: Math.max(prev.bestCombo ?? 0, bestCombo),
+              gamesPlayed: prev.gamesPlayed + 1,
+              totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs,
+            },
+            progression: {
+              totalXp: state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0),
+            },
+          };
+        }),
       addScore: (entry) =>
         set((state) => ({
           scores: [
@@ -225,9 +279,17 @@ export const useStore = create<StoreState>()(
       getGlobalStats: () => {
         const s = get();
         const totalGames =
-          s.snakeStats.gamesPlayed + s.pongStats.gamesPlayed + s.breakoutStats.gamesPlayed;
+          s.snakeStats.gamesPlayed +
+          s.pongStats.gamesPlayed +
+          s.breakoutStats.gamesPlayed +
+          (s.dodgeStats?.gamesPlayed ?? 0) +
+          (s.reactorStats?.gamesPlayed ?? 0);
         const totalTimeMs =
-          s.snakeStats.totalTimeMs + (s.pongStats.totalTimeMs ?? 0) + s.breakoutStats.totalTimeMs;
+          s.snakeStats.totalTimeMs +
+          (s.pongStats.totalTimeMs ?? 0) +
+          s.breakoutStats.totalTimeMs +
+          (s.dodgeStats?.totalTimeMs ?? 0) +
+          (s.reactorStats?.totalTimeMs ?? 0);
         return { totalGames, totalTimeMs };
       },
     }),
@@ -241,6 +303,8 @@ export const useStore = create<StoreState>()(
         snakeStats: state.snakeStats,
         pongStats: state.pongStats,
         breakoutStats: state.breakoutStats,
+        dodgeStats: state.dodgeStats,
+        reactorStats: state.reactorStats,
         progression: state.progression,
       }),
       skipHydration: true,

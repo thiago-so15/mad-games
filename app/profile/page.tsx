@@ -20,16 +20,30 @@ export default function ProfilePage() {
   const snakeStats = useStore((s) => s.snakeStats);
   const pongStats = useStore((s) => s.pongStats);
   const breakoutStats = useStore((s) => s.breakoutStats);
+  const dodgeStats = useStore((s) => s.dodgeStats);
+  const reactorStats = useStore((s) => s.reactorStats);
   const totalXp = useStore((s) => s.progression.totalXp);
 
   const { level, xpInLevel, xpNeeded } = getXpToNextLevel(totalXp);
   const progressPct = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
-  const totalGames = snakeStats.gamesPlayed + pongStats.gamesPlayed + breakoutStats.gamesPlayed;
-  const totalTimeMs = snakeStats.totalTimeMs + (pongStats.totalTimeMs ?? 0) + breakoutStats.totalTimeMs;
+  const totalGames =
+    snakeStats.gamesPlayed +
+    pongStats.gamesPlayed +
+    breakoutStats.gamesPlayed +
+    (dodgeStats?.gamesPlayed ?? 0) +
+    (reactorStats?.gamesPlayed ?? 0);
+  const totalTimeMs =
+    snakeStats.totalTimeMs +
+    (pongStats.totalTimeMs ?? 0) +
+    breakoutStats.totalTimeMs +
+    (dodgeStats?.totalTimeMs ?? 0) +
+    (reactorStats?.totalTimeMs ?? 0);
 
   const snakeScores = getScoresByGame("snake").slice(0, 5);
   const pongScores = getScoresByGame("pong").slice(0, 5);
   const breakoutScores = getScoresByGame("breakout").slice(0, 5);
+  const dodgeScores = getScoresByGame("dodge").slice(0, 5);
+  const reactorScores = getScoresByGame("reactor").slice(0, 5);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -145,6 +159,26 @@ export default function ProfilePage() {
               {breakoutScores.map((s, i) => (
                 <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
                   <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score} pts{s.extra?.level ? ` (nivel ${s.extra.level})` : ""}</span>
+                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
+                </div>
+              ))}
+            </li>
+            <li>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Dodge Madness</p>
+              <p className="text-xs text-zinc-400">Mejor tiempo: {dodgeStats?.bestSurvivalTimeMs ? `${Math.floor(dodgeStats.bestSurvivalTimeMs / 1000)}s` : "—"} · {(dodgeStats?.gamesPlayed ?? 0)} partidas</p>
+              {dodgeScores.map((s, i) => (
+                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
+                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.extra?.survivalTimeMs ? `${Math.floor(Number(s.extra.survivalTimeMs) / 1000)}s` : `${s.score}ms`}</span>
+                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
+                </div>
+              ))}
+            </li>
+            <li>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Reactor Break</p>
+              <p className="text-xs text-zinc-400">Mejor: {(reactorStats?.bestPulsesSurvived ?? 0)} pulsos · Racha: {(reactorStats?.bestCombo ?? 0)} · {(reactorStats?.gamesPlayed ?? 0)} partidas</p>
+              {reactorScores.map((s, i) => (
+                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
+                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score} pulsos{s.extra?.bestCombo ? ` (racha ${s.extra.bestCombo})` : ""}</span>
                   <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
                 </div>
               ))}

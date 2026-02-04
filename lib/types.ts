@@ -228,6 +228,13 @@ export interface PolarStats {
   totalTimeMs: number;
 }
 
+/** Estadísticas Void (mejor tiempo supervivencia, partidas, tiempo total) */
+export interface VoidStats {
+  bestSurvivalTimeMs: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
 /** Rareza visual de logros — v3 */
 export type AchievementRarity = "common" | "rare" | "legendary";
 

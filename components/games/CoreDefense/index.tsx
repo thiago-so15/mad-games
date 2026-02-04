@@ -13,7 +13,6 @@ type Screen = "start" | "playing" | "result";
 export function CoreDefenseGame({ slug }: { slug: string }) {
   const settings = useStore((s) => s.settings);
   const coreDefenseStats = useStore((s) => s.coreDefenseStats);
-  const addScore = useStore((s) => s.addScore);
   const updateCoreDefenseStats = useStore((s) => s.updateCoreDefenseStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
   const [screen, setScreen] = useState<Screen>("start");
@@ -44,9 +43,13 @@ export function CoreDefenseGame({ slug }: { slug: string }) {
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
     updateCoreDefenseStats({ streak: state.streak, timePlayedMs });
-    addScore({ gameSlug: "core-defense", score: state.streak, extra: { timePlayedMs: String(timePlayedMs) } });
+    platform.emit("gameEnd", {
+      gameSlug: slug,
+      score: state.streak,
+      extra: { timePlayedMs: String(timePlayedMs) },
+    });
     setScreen("result");
-  }, [screen, state.phase, state.streak, updateCoreDefenseStats, addScore]);
+  }, [screen, state.phase, state.streak, updateCoreDefenseStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {

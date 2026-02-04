@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { StoreHydration } from "@/components/StoreHydration";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { UnlockReveal } from "@/components/UnlockReveal";
+import { UnlockMessage } from "@/components/UnlockMessage";
+import { SessionReset } from "@/components/SessionReset";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +35,9 @@ export default function RootLayout({
       >
         <StoreHydration />
         <ThemeProvider />
+        <SessionReset />
+        <UnlockReveal />
+        <UnlockMessage />
         <Nav />
         <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
           {children}

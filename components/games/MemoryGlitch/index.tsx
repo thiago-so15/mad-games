@@ -12,7 +12,6 @@ type Screen = "start" | "playing" | "result";
 
 export function MemoryGlitchGame({ slug }: { slug: string }) {
   const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
-  const addScore = useStore((s) => s.addScore);
   const updateMemoryGlitchStats = useStore((s) => s.updateMemoryGlitchStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
   const [screen, setScreen] = useState<Screen>("start");
@@ -42,9 +41,13 @@ export function MemoryGlitchGame({ slug }: { slug: string }) {
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
     updateMemoryGlitchStats({ rounds: state.round, timePlayedMs });
-    addScore({ gameSlug: "memory-glitch", score: state.round, extra: { timePlayedMs: String(timePlayedMs) } });
+    platform.emit("gameEnd", {
+      gameSlug: slug,
+      score: state.round,
+      extra: { timePlayedMs: String(timePlayedMs) },
+    });
     setScreen("result");
-  }, [screen, state.gameOver, state.round, updateMemoryGlitchStats, addScore]);
+  }, [screen, state.gameOver, state.round, updateMemoryGlitchStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {

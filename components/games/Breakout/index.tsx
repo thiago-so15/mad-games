@@ -18,7 +18,6 @@ interface BreakoutGameProps {
 export function BreakoutGame({ slug }: BreakoutGameProps) {
   const settings = useStore((s) => s.settings);
   const breakoutStats = useStore((s) => s.breakoutStats);
-  const addScore = useStore((s) => s.addScore);
   const updateBreakoutStats = useStore((s) => s.updateBreakoutStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -60,6 +59,11 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
         timePlayedMs: timePlayed,
         levelCompleteOnly: true,
       });
+      platform.emit("gameEnd", {
+        gameSlug: slug,
+        score: state.score,
+        extra: { mode, level: String(state.level + 1) },
+      });
       setScreen("result");
       return;
     }
@@ -73,14 +77,14 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
         levelReached: state.level,
         timePlayedMs: timePlayed,
       });
-      addScore({
-        gameSlug: "breakout",
+      platform.emit("gameEnd", {
+        gameSlug: slug,
         score: state.score,
         extra: { mode, level: String(state.level + 1) },
       });
       setScreen("result");
     }
-  }, [screen, state.phase, state.score, state.level, state.gameStartTime, mode, updateBreakoutStats, addScore]);
+  }, [screen, state.phase, state.score, state.level, state.gameStartTime, mode, updateBreakoutStats, slug]);
 
   if (screen === "start") {
     return (

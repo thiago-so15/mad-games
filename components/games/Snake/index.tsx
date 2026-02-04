@@ -19,7 +19,6 @@ interface SnakeGameProps {
 export function SnakeGame({ slug }: SnakeGameProps) {
   const settings = useStore((s) => s.settings);
   const snakeStats = useStore((s) => s.snakeStats);
-  const addScore = useStore((s) => s.addScore);
   const updateSnakeStats = useStore((s) => s.updateSnakeStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -61,13 +60,13 @@ export function SnakeGame({ slug }: SnakeGameProps) {
     recordedGameOverRef.current = true;
     const timePlayed = getTimePlayedMs();
     updateSnakeStats({ mode, score: state.score, timePlayedMs: timePlayed });
-    addScore({
-      gameSlug: "snake",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.score,
       extra: { mode, timePlayedMs: String(timePlayed) },
     });
     setScreen("gameOver");
-  }, [screen, state.gameOver, mode, state.score, getTimePlayedMs, updateSnakeStats, addScore]);
+  }, [screen, state.gameOver, mode, state.score, getTimePlayedMs, updateSnakeStats, slug]);
 
   useVisibilityPause(
     useCallback(() => {

@@ -115,6 +115,20 @@ export const GAMES_CATALOG: GameMeta[] = [
   },
 ];
 
+/** Juego oculto; solo se muestra cuando está desbloqueado. */
+export const HIDDEN_GAME: GameMeta = {
+  slug: "void",
+  name: "Void",
+  description: "Un punto. Un límite. No toques los bordes.",
+  icon: "◯",
+  available: true,
+  category: "arcade",
+  difficulty: 3,
+};
+
 export function getGameBySlug(slug: string): GameMeta | undefined {
-  return GAMES_CATALOG.find((g) => g.slug === slug);
+  const fromCatalog = GAMES_CATALOG.find((g) => g.slug === slug);
+  if (fromCatalog) return fromCatalog;
+  if (slug === HIDDEN_GAME.slug) return HIDDEN_GAME;
+  return undefined;
 }

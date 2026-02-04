@@ -13,7 +13,6 @@ type Screen = "start" | "playing" | "result";
 export function OverloadGame({ slug }: { slug: string }) {
   const settings = useStore((s) => s.settings);
   const overloadStats = useStore((s) => s.overloadStats);
-  const addScore = useStore((s) => s.addScore);
   const updateOverloadStats = useStore((s) => s.updateOverloadStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -51,20 +50,13 @@ export function OverloadGame({ slug }: { slug: string }) {
       bestCombo: state.bestCombo,
       timePlayedMs,
     });
-    addScore({
-      gameSlug: "overload",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.score,
       extra: { bestCombo: String(state.bestCombo), timePlayedMs: String(timePlayedMs) },
     });
     setScreen("result");
-  }, [
-    screen,
-    state.phase,
-    state.score,
-    state.bestCombo,
-    updateOverloadStats,
-    addScore,
-  ]);
+  }, [screen, state.phase, state.score, state.bestCombo, updateOverloadStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
 

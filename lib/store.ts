@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, OverloadStats, PolarStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
+import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, OverloadStats, PolarStats, VoidStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
 import { getUnlockedAchievementIds } from "./achievements";
 import { platform } from "./platform-events";
 import { getShopItemById, getEquipSlotForItemType } from "./shop";
@@ -110,6 +110,12 @@ const defaultPolarStats: PolarStats = {
   totalTimeMs: 0,
 };
 
+const defaultVoidStats: VoidStats = {
+  bestSurvivalTimeMs: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
 const defaultProgression: Progression = {
   totalXp: 0,
 };
@@ -189,11 +195,16 @@ type StoreState = {
   shiftStats: ShiftStats;
   overloadStats: OverloadStats;
   polarStats: PolarStats;
+  voidStats: VoidStats;
   progression: Progression;
   dailyChallenge: DailyChallengeState;
   unlockedAchievementIds: string[];
   wallet: Wallet;
   inventory: Inventory;
+  hiddenGameUnlocked: boolean;
+  sessionConsecutivePlays: { count: number; gameSlug: string | null };
+  pendingUnlockReveal: boolean;
+  pendingUnlockMessage: boolean;
   setProfile: (partial: Partial<UserProfile>) => void;
   setSettings: (partial: Partial<GameSettings>) => void;
   setLastPlayedGame: (gameSlug: string) => void;
@@ -218,6 +229,11 @@ type StoreState = {
   updateShiftStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
   updateOverloadStats: (params: { score: number; bestCombo: number; timePlayedMs: number }) => void;
   updatePolarStats: (params: { score: number; bestCombo: number; timePlayedMs: number }) => void;
+  updateVoidStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
+  recordGameEnd: (gameSlug: string) => void;
+  resetSessionConsecutivePlays: () => void;
+  clearUnlockMessage: () => void;
+  setUnlockRevealDone: () => void;
   mergeAchievements: () => void;
 };
 
@@ -246,11 +262,16 @@ function getDefaultState() {
     shiftStats: defaultShiftStats,
     overloadStats: defaultOverloadStats,
     polarStats: defaultPolarStats,
+    voidStats: defaultVoidStats,
     progression: defaultProgression,
     dailyChallenge: defaultDailyChallenge,
     unlockedAchievementIds: [] as string[],
     wallet: defaultWallet,
     inventory: defaultInventory,
+    hiddenGameUnlocked: false,
+    sessionConsecutivePlays: { count: 0, gameSlug: null as string | null },
+    pendingUnlockReveal: false,
+    pendingUnlockMessage: false,
   };
 }
 
@@ -625,6 +646,61 @@ export const useStore = create<StoreState>()(
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
+      updateVoidStats: ({ survivalTimeMs, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.voidStats;
+          const isNewRecord = survivalTimeMs > (prev.bestSurvivalTimeMs ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const voidStats = {
+            ...prev,
+            bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs),
+            gamesPlayed: prev.gamesPlayed + 1,
+            totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs,
+          };
+          const dateKey = getTodayDateKey();
+          const { dailyChallenge, xpReward, coinsReward } = applyDailyProgress(state.dailyChallenge ?? defaultDailyChallenge, dateKey, { gameSlug: "void", isNewRecord });
+          const progression = { totalXp: nextXp + xpReward };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins + coinsReward };
+          return {
+            ...state,
+            voidStats,
+            progression,
+            wallet,
+            dailyChallenge,
+            unlockedAchievementIds: mergeAchievementIds(state, { progression, voidStats }),
+          };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      recordGameEnd: (gameSlug) => {
+        const HIDDEN_GAME_SLUG = "void";
+        set((state) => {
+          const prev = state.sessionConsecutivePlays;
+          const sameGame = prev.gameSlug === gameSlug;
+          const count = sameGame ? prev.count + 1 : 1;
+          const unlocked = state.hiddenGameUnlocked;
+          const shouldUnlock = !unlocked && count >= 3;
+          return {
+            sessionConsecutivePlays: { count, gameSlug },
+            ...(shouldUnlock
+              ? {
+                  hiddenGameUnlocked: true,
+                  pendingUnlockReveal: true,
+                }
+              : {}),
+          };
+        });
+      },
+      resetSessionConsecutivePlays: () =>
+        set({ sessionConsecutivePlays: { count: 0, gameSlug: null } }),
+      clearUnlockMessage: () => set({ pendingUnlockMessage: false }),
+      setUnlockRevealDone: () =>
+        set({ pendingUnlockReveal: false, pendingUnlockMessage: true }),
       addScore: (entry) =>
         set((state) => ({
           scores: [
@@ -696,7 +772,8 @@ export const useStore = create<StoreState>()(
           (s.coreDefenseStats?.gamesPlayed ?? 0) +
           (s.shiftStats?.gamesPlayed ?? 0) +
           (s.overloadStats?.gamesPlayed ?? 0) +
-          (s.polarStats?.gamesPlayed ?? 0);
+          (s.polarStats?.gamesPlayed ?? 0) +
+          (s.voidStats?.gamesPlayed ?? 0);
         const totalTimeMs =
           s.snakeStats.totalTimeMs +
           (s.pongStats.totalTimeMs ?? 0) +
@@ -709,7 +786,8 @@ export const useStore = create<StoreState>()(
           (s.coreDefenseStats?.totalTimeMs ?? 0) +
           (s.shiftStats?.totalTimeMs ?? 0) +
           (s.overloadStats?.totalTimeMs ?? 0) +
-          (s.polarStats?.totalTimeMs ?? 0);
+          (s.polarStats?.totalTimeMs ?? 0) +
+          (s.voidStats?.totalTimeMs ?? 0);
         return { totalGames, totalTimeMs };
       },
     }),
@@ -732,11 +810,13 @@ export const useStore = create<StoreState>()(
         shiftStats: state.shiftStats,
         overloadStats: state.overloadStats ?? defaultOverloadStats,
         polarStats: state.polarStats ?? defaultPolarStats,
+        voidStats: state.voidStats ?? defaultVoidStats,
         progression: state.progression,
         dailyChallenge: state.dailyChallenge ?? defaultDailyChallenge,
         unlockedAchievementIds: state.unlockedAchievementIds,
         wallet: state.wallet ?? defaultWallet,
         inventory: state.inventory ?? defaultInventory,
+        hiddenGameUnlocked: state.hiddenGameUnlocked ?? false,
       }),
       skipHydration: true,
     }
@@ -754,5 +834,6 @@ if (typeof window !== "undefined") {
       score: p.score ?? 0,
       extra: p.extra,
     });
+    useStore.getState().recordGameEnd(p.gameSlug);
   });
 }

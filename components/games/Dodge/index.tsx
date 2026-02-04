@@ -17,7 +17,6 @@ interface DodgeGameProps {
 export function DodgeGame({ slug }: DodgeGameProps) {
   const settings = useStore((s) => s.settings);
   const dodgeStats = useStore((s) => s.dodgeStats);
-  const addScore = useStore((s) => s.addScore);
   const updateDodgeStats = useStore((s) => s.updateDodgeStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -53,13 +52,13 @@ export function DodgeGame({ slug }: DodgeGameProps) {
       survivalTimeMs: state.survivalTimeMs,
       timePlayedMs,
     });
-    addScore({
-      gameSlug: "dodge",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.survivalTimeMs,
       extra: { survivalTimeMs: String(state.survivalTimeMs) },
     });
     setScreen("result");
-  }, [screen, state.phase, state.survivalTimeMs, updateDodgeStats, addScore]);
+  }, [screen, state.phase, state.survivalTimeMs, updateDodgeStats, slug]);
 
   if (screen === "start") {
     return <StartScreen onPlay={handlePlay} />;

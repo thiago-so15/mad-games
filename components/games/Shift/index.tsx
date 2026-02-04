@@ -13,7 +13,6 @@ type Screen = "start" | "playing" | "result";
 export function ShiftGame({ slug }: { slug: string }) {
   const settings = useStore((s) => s.settings);
   const shiftStats = useStore((s) => s.shiftStats);
-  const addScore = useStore((s) => s.addScore);
   const updateShiftStats = useStore((s) => s.updateShiftStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
   const [screen, setScreen] = useState<Screen>("start");
@@ -44,9 +43,13 @@ export function ShiftGame({ slug }: { slug: string }) {
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
     updateShiftStats({ survivalTimeMs: state.survivalTimeMs, timePlayedMs });
-    addScore({ gameSlug: "shift", score: state.survivalTimeMs, extra: { survivalTimeMs: String(state.survivalTimeMs) } });
+    platform.emit("gameEnd", {
+      gameSlug: slug,
+      score: state.survivalTimeMs,
+      extra: { survivalTimeMs: String(state.survivalTimeMs) },
+    });
     setScreen("result");
-  }, [screen, state.phase, state.survivalTimeMs, updateShiftStats, addScore]);
+  }, [screen, state.phase, state.survivalTimeMs, updateShiftStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {

@@ -13,7 +13,6 @@ type Screen = "start" | "playing" | "result";
 export function PolarGame({ slug }: { slug: string }) {
   const settings = useStore((s) => s.settings);
   const polarStats = useStore((s) => s.polarStats);
-  const addScore = useStore((s) => s.addScore);
   const updatePolarStats = useStore((s) => s.updatePolarStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -51,20 +50,13 @@ export function PolarGame({ slug }: { slug: string }) {
       bestCombo: state.bestCombo,
       timePlayedMs,
     });
-    addScore({
-      gameSlug: "polar",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.score,
       extra: { bestCombo: String(state.bestCombo), timePlayedMs: String(timePlayedMs) },
     });
     setScreen("result");
-  }, [
-    screen,
-    state.phase,
-    state.score,
-    state.bestCombo,
-    updatePolarStats,
-    addScore,
-  ]);
+  }, [screen, state.phase, state.score, state.bestCombo, updatePolarStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
 

@@ -83,3 +83,22 @@ body {
 .hover-lift:active {
   transform: translateY(0);
 }
+
+/* Unlock reveal — glitch then dark flash (600ms total) */
+@keyframes unlock-reveal {
+  0% { opacity: 0; transform: translateX(0); }
+  8% { opacity: 1; transform: translateX(-4px); }
+  16% { opacity: 0.9; transform: translateX(4px); }
+  24% { opacity: 1; transform: translateX(-2px); }
+  32% { opacity: 0.95; transform: translateX(2px); }
+  40% { opacity: 1; transform: translateX(0); }
+  50% { opacity: 0.9; transform: translateX(3px); }
+  58% { opacity: 1; transform: translateX(-3px); }
+  66% { opacity: 0.95; transform: translateX(0); }
+  66.01% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.animate-unlock-reveal {
+  animation: unlock-reveal 600ms steps(1) forwards;
+}

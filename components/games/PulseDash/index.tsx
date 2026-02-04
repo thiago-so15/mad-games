@@ -13,7 +13,6 @@ type Screen = "start" | "playing" | "result";
 export function PulseDashGame({ slug }: { slug: string }) {
   const settings = useStore((s) => s.settings);
   const pulseDashStats = useStore((s) => s.pulseDashStats);
-  const addScore = useStore((s) => s.addScore);
   const updatePulseDashStats = useStore((s) => s.updatePulseDashStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
   const [screen, setScreen] = useState<Screen>("start");
@@ -44,9 +43,13 @@ export function PulseDashGame({ slug }: { slug: string }) {
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
     updatePulseDashStats({ distance: state.distance, timePlayedMs });
-    addScore({ gameSlug: "pulse-dash", score: Math.floor(state.distance), extra: { timePlayedMs: String(timePlayedMs) } });
+    platform.emit("gameEnd", {
+      gameSlug: slug,
+      score: Math.floor(state.distance),
+      extra: { timePlayedMs: String(timePlayedMs) },
+    });
     setScreen("result");
-  }, [screen, state.phase, state.distance, updatePulseDashStats, addScore]);
+  }, [screen, state.phase, state.distance, updatePulseDashStats, slug]);
 
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {

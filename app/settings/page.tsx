@@ -51,6 +51,8 @@ export default function SettingsPage() {
       shiftStats: { bestSurvivalTimeMs: 0, gamesPlayed: 0, totalTimeMs: 0 },
       overloadStats: { bestScore: 0, bestCombo: 0, gamesPlayed: 0, totalTimeMs: 0 },
       polarStats: { bestScore: 0, bestCombo: 0, gamesPlayed: 0, totalTimeMs: 0 },
+      voidStats: { bestSurvivalTimeMs: 0, gamesPlayed: 0, totalTimeMs: 0 },
+      hiddenGameUnlocked: false,
       progression: { totalXp: 0 },
       unlockedAchievementIds: [],
       wallet: { madCoins: 0 },

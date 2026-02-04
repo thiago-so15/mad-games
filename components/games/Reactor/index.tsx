@@ -17,7 +17,6 @@ interface ReactorGameProps {
 export function ReactorGame({ slug }: ReactorGameProps) {
   const settings = useStore((s) => s.settings);
   const reactorStats = useStore((s) => s.reactorStats);
-  const addScore = useStore((s) => s.addScore);
   const updateReactorStats = useStore((s) => s.updateReactorStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -54,13 +53,13 @@ export function ReactorGame({ slug }: ReactorGameProps) {
       bestCombo: state.bestCombo,
       timePlayedMs,
     });
-    addScore({
-      gameSlug: "reactor",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.pulsesSurvived,
       extra: { bestCombo: String(state.bestCombo) },
     });
     setScreen("result");
-  }, [screen, state.phase, state.pulsesSurvived, state.bestCombo, updateReactorStats, addScore]);
+  }, [screen, state.phase, state.pulsesSurvived, state.bestCombo, updateReactorStats, slug]);
 
   if (screen === "start") {
     return <StartScreen onPlay={handlePlay} />;

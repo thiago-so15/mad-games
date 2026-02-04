@@ -12,6 +12,7 @@ import { CoreDefenseGame } from "@/components/games/CoreDefense";
 import { ShiftGame } from "@/components/games/Shift";
 import { OverloadGame } from "@/components/games/Overload";
 import { PolarGame } from "@/components/games/Polar";
+import { VoidGame } from "@/components/games/Void";
 
 const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   snake: SnakeGame,
@@ -26,6 +27,7 @@ const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   shift: ShiftGame,
   overload: OverloadGame,
   polar: PolarGame,
+  void: VoidGame,
 };
 
 interface GameRendererProps {

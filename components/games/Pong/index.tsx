@@ -18,7 +18,6 @@ interface PongGameProps {
 export function PongGame({ slug }: PongGameProps) {
   const settings = useStore((s) => s.settings);
   const pongStats = useStore((s) => s.pongStats);
-  const addScore = useStore((s) => s.addScore);
   const updatePongStats = useStore((s) => s.updatePongStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
@@ -81,8 +80,8 @@ export function PongGame({ slug }: PongGameProps) {
       updatePongStats({ won: playerWon, timePlayedMs });
     }
 
-    addScore({
-      gameSlug: "pong",
+    platform.emit("gameEnd", {
+      gameSlug: slug,
       score: state.mode === "survival" ? state.survivalTimeMs : state.scoreLeft,
       extra: {
         mode,
@@ -99,9 +98,10 @@ export function PongGame({ slug }: PongGameProps) {
     state.scoreLeft,
     state.scoreRight,
     state.survivalTimeMs,
+    state.mode,
     mode,
     updatePongStats,
-    addScore,
+    slug,
   ]);
 
   if (screen === "start") {

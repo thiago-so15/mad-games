@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { GAMES_CATALOG } from "@/lib/games";
+import { GAMES_CATALOG, HIDDEN_GAME } from "@/lib/games";
 import { useStore } from "@/lib/store";
 
 function getPersonalStatsLabel(
@@ -18,7 +18,8 @@ function getPersonalStatsLabel(
   coreDefenseStats: { gamesPlayed: number; bestStreak: number } | undefined,
   shiftStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined,
   overloadStats: { gamesPlayed: number; bestScore: number; bestCombo: number } | undefined,
-  polarStats: { gamesPlayed: number; bestScore: number; bestCombo: number } | undefined
+  polarStats: { gamesPlayed: number; bestScore: number; bestCombo: number } | undefined,
+  voidStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined
 ): string | null {
   if (slug === "snake") {
     const best = Math.max(0, ...Object.values(snakeStats.bestScoreByMode));
@@ -65,6 +66,11 @@ function getPersonalStatsLabel(
   if (slug === "polar" && polarStats?.gamesPlayed) {
     return polarStats.bestScore ? `Mejor: ${polarStats.bestScore} · Racha: ${polarStats.bestCombo}` : `${polarStats.gamesPlayed} partidas`;
   }
+  if (slug === "void" && voidStats?.gamesPlayed) {
+    return voidStats.bestSurvivalTimeMs
+      ? `Mejor: ${Math.floor(voidStats.bestSurvivalTimeMs / 1000)}s`
+      : `${voidStats.gamesPlayed} partidas`;
+  }
   return null;
 }
 
@@ -81,6 +87,7 @@ function getGamesPlayed(slug: string, store: ReturnType<typeof useStore.getState
   if (slug === "shift") return store.shiftStats?.gamesPlayed ?? 0;
   if (slug === "overload") return store.overloadStats?.gamesPlayed ?? 0;
   if (slug === "polar") return store.polarStats?.gamesPlayed ?? 0;
+  if (slug === "void") return store.voidStats?.gamesPlayed ?? 0;
   return 0;
 }
 
@@ -98,7 +105,8 @@ function hasPersonalRecord(
   coreDefenseStats: { bestStreak: number } | undefined,
   shiftStats: { bestSurvivalTimeMs: number } | undefined,
   overloadStats: { bestScore: number } | undefined,
-  polarStats: { bestScore: number } | undefined
+  polarStats: { bestScore: number } | undefined,
+  voidStats: { bestSurvivalTimeMs: number } | undefined
 ): boolean {
   if (slug === "snake") return Math.max(0, ...Object.values(snakeStats.bestScoreByMode)) > 0;
   if (slug === "pong") return pongStats.bestStreak > 0 || pongStats.bestSurvivalTimeMs > 0;
@@ -112,6 +120,7 @@ function hasPersonalRecord(
   if (slug === "shift") return (shiftStats?.bestSurvivalTimeMs ?? 0) > 0;
   if (slug === "overload") return (overloadStats?.bestScore ?? 0) > 0;
   if (slug === "polar") return (polarStats?.bestScore ?? 0) > 0;
+  if (slug === "void") return (voidStats?.bestSurvivalTimeMs ?? 0) > 0;
   return false;
 }
 
@@ -134,6 +143,8 @@ export function CatalogGrid() {
   const shiftStats = useStore((s) => s.shiftStats);
   const overloadStats = useStore((s) => s.overloadStats);
   const polarStats = useStore((s) => s.polarStats);
+  const voidStats = useStore((s) => s.voidStats);
+  const hiddenGameUnlocked = useStore((s) => s.hiddenGameUnlocked);
   const favoriteGameSlugs = useStore((s) => s.profile.favoriteGameSlugs);
   const lastPlayedSlug = useStore((s) => s.profile.lastPlayedGameSlug);
   const favorites = favoriteGameSlugs ?? [];
@@ -141,8 +152,13 @@ export function CatalogGrid() {
   const toggleFavorite = useStore((s) => s.toggleFavorite);
   const getState = useStore.getState;
 
+  const catalog = useMemo(
+    () => [...GAMES_CATALOG, ...(hiddenGameUnlocked ? [HIDDEN_GAME] : [])],
+    [hiddenGameUnlocked]
+  );
+
   const filtered = useMemo(() => {
-    const list = GAMES_CATALOG.filter((g) => {
+    const list = catalog.filter((g) => {
       if (categoryFilter !== "todos" && g.category !== categoryFilter) return false;
       if (difficultyFilter !== "todas" && g.difficulty !== Number(difficultyFilter)) return false;
       return true;
@@ -156,7 +172,7 @@ export function CatalogGrid() {
       if (lastPlayed === b.slug) return 1;
       return 0;
     });
-  }, [categoryFilter, difficultyFilter, favorites, lastPlayed]);
+  }, [catalog, categoryFilter, difficultyFilter, favorites, lastPlayed]);
 
   return (
     <>
@@ -202,7 +218,8 @@ export function CatalogGrid() {
             coreDefenseStats,
             shiftStats,
             overloadStats,
-            polarStats
+            polarStats,
+            voidStats
           );
           const isFavorite = favorites.includes(game.slug);
           const isLastPlayed = lastPlayed === game.slug;
@@ -221,7 +238,8 @@ export function CatalogGrid() {
             coreDefenseStats,
             shiftStats,
             overloadStats,
-            polarStats
+            polarStats,
+            voidStats
           );
 
           return (

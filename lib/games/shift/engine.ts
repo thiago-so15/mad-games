@@ -17,11 +17,14 @@ import type { ShiftGameState, ShiftObstacle } from "./types";
 let obsId = 0;
 
 export function createInitialState(): ShiftGameState {
+  const now = Date.now();
   return {
     playerPhase: 0,
     playerY: PLAYER_Y,
     obstacles: [],
-    gameStartTime: Date.now(),
+    gameStartTime: now,
+    lastSpawnAt: now,
+    lastSwitchAt: 0,
     survivalTimeMs: 0,
     phase: "playing",
     paused: false,
@@ -34,21 +37,21 @@ export function tick(
   dt: number,
   speedMultiplier: number,
   switchPressed: boolean,
-  lastSwitchAt: number,
-  lastSpawnAt: number,
   now: number
-): { state: ShiftGameState; lastSpawnAt: number } {
-  if (state.phase !== "playing" || state.paused) return { state, lastSpawnAt };
+): ShiftGameState {
+  if (state.phase !== "playing" || state.paused) return state;
 
   const elapsed = now - state.gameStartTime;
   const survivalTimeMs = elapsed;
   const difficultyLevel = Math.floor(elapsed / DIFFICULTY_INTERVAL_MS);
   const spawnInterval = Math.max(600, SPAWN_INTERVAL_MS - difficultyLevel * 50);
-  const speed = OBSTACLE_SPEED * (1 + difficultyLevel * 0.08) * speedMultiplier * (dt / 16);
+  const baseSpeed = OBSTACLE_SPEED * (1 + difficultyLevel * 0.08) * speedMultiplier;
 
   let playerPhase = state.playerPhase;
-  if (switchPressed && now - lastSwitchAt >= PHASE_SWITCH_COOLDOWN_MS) {
+  let lastSwitchAt = state.lastSwitchAt;
+  if (switchPressed && now - state.lastSwitchAt >= PHASE_SWITCH_COOLDOWN_MS) {
     playerPhase = (state.playerPhase === 0 ? 1 : 0) as 0 | 1;
+    lastSwitchAt = now;
   }
 
   let obstacles = state.obstacles.map((o) => ({
@@ -56,8 +59,8 @@ export function tick(
     y: o.y + o.speed * (dt / 16),
   }));
 
-  let nextSpawnAt = lastSpawnAt;
-  if (now - lastSpawnAt >= spawnInterval) {
+  let nextSpawnAt = state.lastSpawnAt;
+  if (now - state.lastSpawnAt >= spawnInterval) {
     const phase = Math.random() < 0.5 ? 0 : 1;
     obstacles = [
       ...obstacles,
@@ -66,7 +69,7 @@ export function tick(
         y: -OBSTACLE_HEIGHT,
         phase: phase as 0 | 1,
         height: OBSTACLE_HEIGHT,
-        speed: speed,
+        speed: baseSpeed,
       },
     ];
     nextSpawnAt = now;
@@ -89,15 +92,14 @@ export function tick(
   }
 
   return {
-    state: {
-      ...state,
-      playerPhase,
-      obstacles,
-      survivalTimeMs,
-      difficultyLevel,
-      phase: gameOver ? "gameOver" : "playing",
-    },
+    ...state,
+    playerPhase,
+    obstacles,
     lastSpawnAt: nextSpawnAt,
+    lastSwitchAt,
+    survivalTimeMs,
+    difficultyLevel,
+    phase: gameOver ? "gameOver" : "playing",
   };
 }
 

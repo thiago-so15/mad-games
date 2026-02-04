@@ -17,6 +17,10 @@ export interface ShiftGameState {
   playerY: number;
   obstacles: ShiftObstacle[];
   gameStartTime: number;
+  /** Último momento en que se generó un obstáculo (ms) */
+  lastSpawnAt: number;
+  /** Último momento en que se cambió de fase (ms) */
+  lastSwitchAt: number;
   survivalTimeMs: number;
   phase: "playing" | "gameOver";
   paused: boolean;

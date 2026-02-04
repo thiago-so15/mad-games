@@ -3,15 +3,15 @@
  */
 
 import {
-  CENTER,
   SHIELD_RADIUS,
   SHIELD_WIDTH_RAD,
   SHIELD_SPEED,
   PROJECTILE_SPEED,
   SPAWN_INTERVAL_MS,
   DIFFICULTY_INTERVAL_MS,
+  IMPACT_DURATION_MS,
 } from "./constants";
-import type { CoreDefenseGameState } from "./types";
+import type { CoreDefenseGameState, CoreDefenseImpact } from "./types";
 
 let projId = 0;
 
@@ -28,12 +28,15 @@ function angleDiff(a: number, b: number): number {
 }
 
 export function createInitialState(): CoreDefenseGameState {
+  const now = Date.now();
   return {
     shieldAngle: 0,
     shieldWidth: SHIELD_WIDTH_RAD,
     streak: 0,
     projectiles: [],
-    gameStartTime: Date.now(),
+    impacts: [],
+    gameStartTime: now,
+    lastSpawnAt: now,
     phase: "playing",
     paused: false,
     difficultyLevel: 0,
@@ -45,10 +48,9 @@ export function tick(
   dt: number,
   speedMultiplier: number,
   keys: { left: boolean; right: boolean },
-  lastSpawnAt: number,
   now: number
-): { state: CoreDefenseGameState; lastSpawnAt: number } {
-  if (state.phase !== "playing" || state.paused) return { state, lastSpawnAt };
+): CoreDefenseGameState {
+  if (state.phase !== "playing" || state.paused) return state;
 
   const elapsed = now - state.gameStartTime;
   const difficultyLevel = Math.floor(elapsed / DIFFICULTY_INTERVAL_MS);
@@ -68,8 +70,8 @@ export function tick(
     distance: p.distance - p.speed * (dt / 16) * speedMultiplier,
   }));
 
-  let nextSpawnAt = lastSpawnAt;
-  if (now - lastSpawnAt >= spawnInterval) {
+  let nextSpawnAt = state.lastSpawnAt;
+  if (now - state.lastSpawnAt >= spawnInterval) {
     const angle = Math.random() * Math.PI * 2;
     projectiles = [
       ...projectiles,
@@ -86,6 +88,7 @@ export function tick(
   let streak = state.streak;
   let gameOver = false;
   const remaining: typeof projectiles = [];
+  const newImpacts: CoreDefenseImpact[] = [];
 
   for (const p of projectiles) {
     if (p.distance <= 0) continue;
@@ -93,6 +96,7 @@ export function tick(
       const d = angleDiff(p.angle, shieldAngle);
       if (Math.abs(d) <= halfShield) {
         streak += 1;
+        newImpacts.push({ angle: p.angle, distance: Math.min(p.distance, SHIELD_RADIUS), createdAt: now });
         continue;
       }
       gameOver = true;
@@ -101,16 +105,20 @@ export function tick(
     remaining.push(p);
   }
 
+  const impacts = [
+    ...state.impacts.filter((i) => now - i.createdAt < IMPACT_DURATION_MS),
+    ...newImpacts,
+  ];
+
   return {
-    state: {
-      ...state,
-      shieldAngle,
-      streak,
-      projectiles: remaining,
-      difficultyLevel,
-      phase: gameOver ? "gameOver" : "playing",
-    },
+    ...state,
+    shieldAngle,
+    streak,
+    projectiles: remaining,
+    impacts,
     lastSpawnAt: nextSpawnAt,
+    difficultyLevel,
+    phase: gameOver ? "gameOver" : "playing",
   };
 }
 

@@ -5,10 +5,9 @@ import { tick, togglePause as engineTogglePause, createInitialState } from "./en
 
 export function useShiftGame(speedMultiplier: number) {
   const [state, setState] = useState(() => createInitialState());
-  const switchRef = useRef(false);
-  const lastSwitchRef = useRef(0);
+  /** Una pulsación de cambio de fase: se consume en el siguiente tick */
+  const switchRequestedRef = useRef(false);
   const lastTimeRef = useRef(0);
-  const lastSpawnRef = useRef(0);
   const rafRef = useRef(0);
 
   useEffect(() => {
@@ -20,8 +19,8 @@ export function useShiftGame(speedMultiplier: number) {
           return;
         }
       }
-      if (e.key === " " || e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
-        if (e.type === "keydown") switchRef.current = true;
+      if ((e.key === " " || e.key === "ArrowUp" || e.key === "w" || e.key === "W") && e.type === "keydown") {
+        switchRequestedRef.current = true;
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -38,33 +37,19 @@ export function useShiftGame(speedMultiplier: number) {
       const now = Date.now();
       const dt = lastTimeRef.current ? now - lastTimeRef.current : 16;
       lastTimeRef.current = now;
-      setState((s) => {
-        const { state: nextState, lastSpawnAt } = tick(
-          s,
-          dt,
-          speedMultiplier,
-          switchRef.current,
-          lastSwitchRef.current,
-          lastSpawnRef.current,
-          now
-        );
-        lastSpawnRef.current = lastSpawnAt;
-        if (switchRef.current) lastSwitchRef.current = now;
-        switchRef.current = false;
-        return nextState;
-      });
+      const switchPressed = switchRequestedRef.current;
+      if (switchPressed) switchRequestedRef.current = false;
+      setState((s) => tick(s, dt, speedMultiplier, switchPressed, now));
       rafRef.current = requestAnimationFrame(loop);
     };
-    lastSpawnRef.current = state.gameStartTime;
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [state.phase, state.paused, speedMultiplier, state.gameStartTime]);
 
   const start = useCallback(() => {
-    switchRef.current = false;
-    const initial = createInitialState();
-    setState(initial);
-    lastSpawnRef.current = initial.gameStartTime;
+    switchRequestedRef.current = false;
+    setState(createInitialState());
+    lastTimeRef.current = 0;
   }, []);
 
   const togglePause = useCallback(() => setState((s) => engineTogglePause(s)), []);

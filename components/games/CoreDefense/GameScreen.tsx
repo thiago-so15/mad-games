@@ -6,10 +6,11 @@ import type { CoreDefenseGameState } from "@/lib/games/core-defense/types";
 
 interface GameScreenProps {
   state: CoreDefenseGameState;
+  canvasStateRef?: React.MutableRefObject<CoreDefenseGameState | null>;
   onPause: () => void;
 }
 
-export function GameScreen({ state, onPause }: GameScreenProps) {
+export function GameScreen({ state, canvasStateRef, onPause }: GameScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -33,7 +34,7 @@ export function GameScreen({ state, onPause }: GameScreenProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const draw = () => {
-      const s = stateRef.current;
+      const s = (canvasStateRef?.current ?? stateRef.current) as CoreDefenseGameState;
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
@@ -52,6 +53,18 @@ export function GameScreen({ state, onPause }: GameScreenProps) {
       ctx.strokeStyle = "#16a34a";
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      for (const i of s.impacts) {
+        const x = CENTER + i.distance * Math.cos(i.angle);
+        const y = CENTER + i.distance * Math.sin(i.angle);
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(250,204,21,0.9)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
 
       for (const p of s.projectiles) {
         const x = CENTER + p.distance * Math.cos(p.angle);

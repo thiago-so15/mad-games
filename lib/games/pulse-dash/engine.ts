@@ -17,6 +17,7 @@ export function createInitialState(): PulseDashGameState {
     lane: 1,
     dashCooldownMs: 0,
     zoneDanger: false,
+    safeLane: 0,
     gameStartTime: Date.now(),
     phase: "playing",
     paused: false,
@@ -37,7 +38,10 @@ export function tick(
   const difficultyLevel = Math.floor(elapsed / DIFFICULTY_INTERVAL_MS);
   const speed = RUNNER_SPEED * (1 + difficultyLevel * 0.1) * speedMultiplier * (dt / 16);
   const zoneSwitch = ZONE_SWITCH_MS * Math.max(0.5, 1 - difficultyLevel * 0.05);
-  const zoneDanger = Math.floor(elapsed / zoneSwitch) % 2 === 1;
+  const zoneIndex = Math.floor(elapsed / zoneSwitch);
+  const zoneDanger = zoneIndex % 2 === 1;
+  /** Carril seguro rota cada fase de peligro: 0 → 1 → 2 → 0 … */
+  const safeLane = zoneIndex % LANE_COUNT;
 
   let { distance, lane, dashCooldownMs } = state;
 
@@ -50,7 +54,7 @@ export function tick(
     dashCooldownMs = DASH_COOLDOWN_MS;
   }
 
-  const gameOver = zoneDanger && lane !== 1;
+  const gameOver = zoneDanger && lane !== safeLane;
 
   return {
     ...state,
@@ -58,6 +62,7 @@ export function tick(
     lane,
     dashCooldownMs,
     zoneDanger,
+    safeLane,
     difficultyLevel,
     phase: gameOver ? "gameOver" : "playing",
   };

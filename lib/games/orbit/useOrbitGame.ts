@@ -7,7 +7,6 @@ export function useOrbitGame(speedMultiplier: number) {
   const [state, setState] = useState(() => createInitialState());
   const holdRef = useRef(false);
   const lastTimeRef = useRef(0);
-  const lastSpawnRef = useRef(0);
   const rafRef = useRef(0);
 
   useEffect(() => {
@@ -36,31 +35,17 @@ export function useOrbitGame(speedMultiplier: number) {
       const now = Date.now();
       const dt = lastTimeRef.current ? now - lastTimeRef.current : 16;
       lastTimeRef.current = now;
-      setState((s) => {
-        const { state: nextState, lastSpawnAt } = tick(
-          s,
-          dt,
-          speedMultiplier,
-          holdRef.current,
-          lastSpawnRef.current,
-          now
-        );
-        lastSpawnRef.current = lastSpawnAt;
-        return nextState;
-      });
+      setState((s) => tick(s, dt, speedMultiplier, holdRef.current, now));
       rafRef.current = requestAnimationFrame(loop);
     };
-    lastSpawnRef.current = state.gameStartTime;
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [state.phase, state.paused, speedMultiplier, state.gameStartTime]);
 
   const start = useCallback(() => {
     holdRef.current = false;
-    const initial = createInitialState();
-    setState(initial);
+    setState(createInitialState());
     lastTimeRef.current = 0;
-    lastSpawnRef.current = initial.gameStartTime;
   }, []);
 
   const togglePause = useCallback(() => {

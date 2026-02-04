@@ -5,9 +5,11 @@ import { tick, togglePause as engineTogglePause, createInitialState } from "./en
 
 export function useCoreDefenseGame(speedMultiplier: number) {
   const [state, setState] = useState(() => createInitialState());
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const canvasStateRef = useRef(state);
   const keysRef = useRef({ left: false, right: false });
   const lastTimeRef = useRef(0);
-  const lastSpawnRef = useRef(0);
   const rafRef = useRef(0);
 
   useEffect(() => {
@@ -35,14 +37,11 @@ export function useCoreDefenseGame(speedMultiplier: number) {
       const now = Date.now();
       const dt = lastTimeRef.current ? now - lastTimeRef.current : 16;
       lastTimeRef.current = now;
-      setState((s) => {
-        const { state: nextState, lastSpawnAt } = tick(s, dt, speedMultiplier, keysRef.current, lastSpawnRef.current, now);
-        lastSpawnRef.current = lastSpawnAt;
-        return nextState;
-      });
+      const nextState = tick(stateRef.current, dt, speedMultiplier, keysRef.current, now);
+      canvasStateRef.current = nextState;
+      setState(nextState);
       rafRef.current = requestAnimationFrame(loop);
     };
-    lastSpawnRef.current = state.gameStartTime;
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   }, [state.phase, state.paused, speedMultiplier, state.gameStartTime]);
@@ -51,10 +50,10 @@ export function useCoreDefenseGame(speedMultiplier: number) {
     keysRef.current = { left: false, right: false };
     const initial = createInitialState();
     setState(initial);
-    lastSpawnRef.current = initial.gameStartTime;
+    canvasStateRef.current = initial;
   }, []);
 
   const togglePause = useCallback(() => setState((s) => engineTogglePause(s)), []);
 
-  return { state, start, togglePause };
+  return { state, canvasStateRef, start, togglePause };
 }

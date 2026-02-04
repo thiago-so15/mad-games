@@ -37,7 +37,7 @@ export function GameScreen({ state, onPause }: GameScreenProps) {
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       for (let i = 0; i < LANE_COUNT; i++) {
-        ctx.fillStyle = s.zoneDanger && i !== 1 ? "rgba(220,38,38,0.4)" : "rgba(34,197,94,0.2)";
+        ctx.fillStyle = s.zoneDanger && i !== s.safeLane ? "rgba(220,38,38,0.4)" : "rgba(34,197,94,0.2)";
         ctx.fillRect(0, i * LANE_HEIGHT, CANVAS_WIDTH, LANE_HEIGHT);
         ctx.strokeStyle = "#27272a";
         ctx.strokeRect(0, i * LANE_HEIGHT, CANVAS_WIDTH, LANE_HEIGHT);

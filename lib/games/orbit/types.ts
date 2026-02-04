@@ -26,6 +26,8 @@ export interface OrbitGameState {
   score: number;
   obstacles: OrbitObstacle[];
   gameStartTime: number;
+  /** Último momento en que se generó un obstáculo (ms) */
+  lastSpawnAt: number;
   phase: "playing" | "gameOver";
   paused: boolean;
   difficultyLevel: number;

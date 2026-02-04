@@ -39,13 +39,15 @@ function obstaclePos(angle: number, distance: number): { x: number; y: number } 
 }
 
 export function createInitialState(): OrbitGameState {
+  const now = Date.now();
   return {
     angle: 0,
     radius: (RADIUS_MIN + RADIUS_MAX) / 2,
     holding: false,
     score: 0,
     obstacles: [],
-    gameStartTime: Date.now(),
+    gameStartTime: now,
+    lastSpawnAt: now,
     phase: "playing",
     paused: false,
     difficultyLevel: 0,
@@ -57,11 +59,10 @@ export function tick(
   dt: number,
   speedMultiplier: number,
   holding: boolean,
-  lastSpawnAt: number,
   now: number
-): { state: OrbitGameState; lastSpawnAt: number } {
+): OrbitGameState {
   if (state.phase !== "playing" || state.paused) {
-    return { state, lastSpawnAt };
+    return state;
   }
 
   const elapsed = now - state.gameStartTime;
@@ -90,8 +91,8 @@ export function tick(
     distance: o.distance + o.speed * (dt / 16) * speedMultiplier,
   }));
 
-  let nextSpawnAt = lastSpawnAt;
-  if (now - lastSpawnAt >= spawnInterval) {
+  let nextSpawnAt = state.lastSpawnAt;
+  if (now - state.lastSpawnAt >= spawnInterval) {
     const angleOffset = Math.random() * Math.PI * 2;
     obstacles = [
       ...obstacles,
@@ -126,17 +127,15 @@ export function tick(
   }
 
   return {
-    state: {
-      ...state,
-      angle,
-      radius,
-      holding,
-      score,
-      obstacles: remaining,
-      difficultyLevel,
-      phase: gameOver ? "gameOver" : "playing",
-    },
+    ...state,
+    angle,
+    radius,
+    holding,
+    score,
+    obstacles: remaining,
     lastSpawnAt: nextSpawnAt,
+    difficultyLevel,
+    phase: gameOver ? "gameOver" : "playing",
   };
 }
 

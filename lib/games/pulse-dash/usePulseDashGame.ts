@@ -5,7 +5,8 @@ import { tick, togglePause as engineTogglePause, createInitialState } from "./en
 
 export function usePulseDashGame(speedMultiplier: number) {
   const [state, setState] = useState(() => createInitialState());
-  const dashRef = useRef(false);
+  /** Petición de dash: se marca en keydown y se consume en el siguiente tick (evita perder taps rápidos). */
+  const dashRequestedRef = useRef(false);
   const lastTimeRef = useRef(0);
   const rafRef = useRef(0);
 
@@ -16,8 +17,9 @@ export function usePulseDashGame(speedMultiplier: number) {
         setState((s) => engineTogglePause(s));
         return;
       }
-      if (e.key === " " || e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
-        dashRef.current = e.type === "keydown";
+      if ((e.key === "ArrowUp" || e.key === "w" || e.key === "W") && e.type === "keydown") {
+        e.preventDefault();
+        dashRequestedRef.current = true;
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -34,7 +36,9 @@ export function usePulseDashGame(speedMultiplier: number) {
       const now = Date.now();
       const dt = lastTimeRef.current ? now - lastTimeRef.current : 16;
       lastTimeRef.current = now;
-      setState((s) => tick(s, dt, speedMultiplier, dashRef.current, now));
+      const dashPressed = dashRequestedRef.current;
+      if (dashPressed) dashRequestedRef.current = false;
+      setState((s) => tick(s, dt, speedMultiplier, dashPressed, now));
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
@@ -42,7 +46,7 @@ export function usePulseDashGame(speedMultiplier: number) {
   }, [state.phase, state.paused, speedMultiplier, state.gameStartTime]);
 
   const start = useCallback(() => {
-    dashRef.current = false;
+    dashRequestedRef.current = false;
     setState(createInitialState());
     lastTimeRef.current = 0;
   }, []);

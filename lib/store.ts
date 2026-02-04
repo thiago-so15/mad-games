@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, Progression, Wallet, Inventory, EquipSlot } from "./types";
+import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, Progression, Wallet, Inventory, EquipSlot } from "./types";
 import { getUnlockedAchievementIds } from "./achievements";
 import { platform } from "./platform-events";
 import { getShopItemById, getEquipSlotForItemType } from "./shop";
@@ -20,6 +20,11 @@ const defaultSettings: GameSettings = {
   breakoutSpeedMultiplier: 1,
   dodgeSpeedMultiplier: 1,
   reactorSpeedMultiplier: 1,
+  orbitSpeedMultiplier: 1,
+  pulseDashSpeedMultiplier: 1,
+  memoryGlitchSpeedMultiplier: 1,
+  coreDefenseSpeedMultiplier: 1,
+  shiftSpeedMultiplier: 1,
 };
 
 const defaultSnakeStats: SnakeStats = {
@@ -54,6 +59,36 @@ const defaultDodgeStats: DodgeStats = {
 const defaultReactorStats: ReactorStats = {
   bestPulsesSurvived: 0,
   bestCombo: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultOrbitStats: OrbitStats = {
+  bestScore: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultPulseDashStats: PulseDashStats = {
+  bestDistance: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultMemoryGlitchStats: MemoryGlitchStats = {
+  bestRounds: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultCoreDefenseStats: CoreDefenseStats = {
+  bestStreak: 0,
+  gamesPlayed: 0,
+  totalTimeMs: 0,
+};
+
+const defaultShiftStats: ShiftStats = {
+  bestSurvivalTimeMs: 0,
   gamesPlayed: 0,
   totalTimeMs: 0,
 };
@@ -123,6 +158,11 @@ type StoreState = {
   breakoutStats: BreakoutStats;
   dodgeStats: DodgeStats;
   reactorStats: ReactorStats;
+  orbitStats: OrbitStats;
+  pulseDashStats: PulseDashStats;
+  memoryGlitchStats: MemoryGlitchStats;
+  coreDefenseStats: CoreDefenseStats;
+  shiftStats: ShiftStats;
   progression: Progression;
   unlockedAchievementIds: string[];
   wallet: Wallet;
@@ -144,6 +184,11 @@ type StoreState = {
   updateBreakoutStats: (params: { mode: "campaign" | "endless" | "challenge"; score: number; levelReached: number; timePlayedMs: number; levelCompleteOnly?: boolean }) => void;
   updateDodgeStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
   updateReactorStats: (params: { pulsesSurvived: number; bestCombo: number; timePlayedMs: number }) => void;
+  updateOrbitStats: (params: { score: number; timePlayedMs: number }) => void;
+  updatePulseDashStats: (params: { distance: number; timePlayedMs: number }) => void;
+  updateMemoryGlitchStats: (params: { rounds: number; timePlayedMs: number }) => void;
+  updateCoreDefenseStats: (params: { streak: number; timePlayedMs: number }) => void;
+  updateShiftStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
   mergeAchievements: () => void;
 };
 
@@ -165,6 +210,11 @@ function getDefaultState() {
     breakoutStats: defaultBreakoutStats,
     dodgeStats: defaultDodgeStats,
     reactorStats: defaultReactorStats,
+    orbitStats: defaultOrbitStats,
+    pulseDashStats: defaultPulseDashStats,
+    memoryGlitchStats: defaultMemoryGlitchStats,
+    coreDefenseStats: defaultCoreDefenseStats,
+    shiftStats: defaultShiftStats,
     progression: defaultProgression,
     unlockedAchievementIds: [] as string[],
     wallet: defaultWallet,
@@ -364,6 +414,91 @@ export const useStore = create<StoreState>()(
         });
         if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
       },
+      updateOrbitStats: ({ score, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.orbitStats;
+          const isNewRecord = score > (prev.bestScore ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const orbitStats = { ...prev, bestScore: Math.max(prev.bestScore ?? 0, score), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
+          const progression = { totalXp: nextXp };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          return { ...state, orbitStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, orbitStats }) };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      updatePulseDashStats: ({ distance, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.pulseDashStats;
+          const isNewRecord = distance > (prev.bestDistance ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const pulseDashStats = { ...prev, bestDistance: Math.max(prev.bestDistance ?? 0, distance), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
+          const progression = { totalXp: nextXp };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          return { ...state, pulseDashStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, pulseDashStats }) };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      updateMemoryGlitchStats: ({ rounds, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.memoryGlitchStats;
+          const isNewRecord = rounds > (prev.bestRounds ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const memoryGlitchStats = { ...prev, bestRounds: Math.max(prev.bestRounds ?? 0, rounds), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
+          const progression = { totalXp: nextXp };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          return { ...state, memoryGlitchStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, memoryGlitchStats }) };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      updateCoreDefenseStats: ({ streak, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.coreDefenseStats;
+          const isNewRecord = streak > (prev.bestStreak ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const coreDefenseStats = { ...prev, bestStreak: Math.max(prev.bestStreak ?? 0, streak), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
+          const progression = { totalXp: nextXp };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          return { ...state, coreDefenseStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, coreDefenseStats }) };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
+      updateShiftStats: ({ survivalTimeMs, timePlayedMs }) => {
+        let levelUpPayload: { level: number } | null = null;
+        set((state) => {
+          const prev = state.shiftStats;
+          const isNewRecord = survivalTimeMs > (prev.bestSurvivalTimeMs ?? 0);
+          const nextXp = state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0);
+          const prevLevel = xpToLevel(state.progression.totalXp);
+          const nextLevel = xpToLevel(nextXp);
+          const coins = COINS_PER_GAME + (isNewRecord ? COINS_NEW_RECORD : 0) + (nextLevel > prevLevel ? COINS_LEVEL_UP : 0);
+          if (nextLevel > prevLevel) levelUpPayload = { level: nextLevel };
+          const shiftStats = { ...prev, bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs), gamesPlayed: prev.gamesPlayed + 1, totalTimeMs: (prev.totalTimeMs ?? 0) + timePlayedMs };
+          const progression = { totalXp: nextXp };
+          const wallet = { madCoins: (state.wallet?.madCoins ?? 0) + coins };
+          return { ...state, shiftStats, progression, wallet, unlockedAchievementIds: mergeAchievementIds(state, { progression, shiftStats }) };
+        });
+        if (levelUpPayload) platform.emit("levelUp", levelUpPayload);
+      },
       addScore: (entry) =>
         set((state) => ({
           scores: [
@@ -428,13 +563,23 @@ export const useStore = create<StoreState>()(
           s.pongStats.gamesPlayed +
           s.breakoutStats.gamesPlayed +
           (s.dodgeStats?.gamesPlayed ?? 0) +
-          (s.reactorStats?.gamesPlayed ?? 0);
+          (s.reactorStats?.gamesPlayed ?? 0) +
+          (s.orbitStats?.gamesPlayed ?? 0) +
+          (s.pulseDashStats?.gamesPlayed ?? 0) +
+          (s.memoryGlitchStats?.gamesPlayed ?? 0) +
+          (s.coreDefenseStats?.gamesPlayed ?? 0) +
+          (s.shiftStats?.gamesPlayed ?? 0);
         const totalTimeMs =
           s.snakeStats.totalTimeMs +
           (s.pongStats.totalTimeMs ?? 0) +
           s.breakoutStats.totalTimeMs +
           (s.dodgeStats?.totalTimeMs ?? 0) +
-          (s.reactorStats?.totalTimeMs ?? 0);
+          (s.reactorStats?.totalTimeMs ?? 0) +
+          (s.orbitStats?.totalTimeMs ?? 0) +
+          (s.pulseDashStats?.totalTimeMs ?? 0) +
+          (s.memoryGlitchStats?.totalTimeMs ?? 0) +
+          (s.coreDefenseStats?.totalTimeMs ?? 0) +
+          (s.shiftStats?.totalTimeMs ?? 0);
         return { totalGames, totalTimeMs };
       },
     }),
@@ -450,6 +595,11 @@ export const useStore = create<StoreState>()(
         breakoutStats: state.breakoutStats,
         dodgeStats: state.dodgeStats,
         reactorStats: state.reactorStats,
+        orbitStats: state.orbitStats,
+        pulseDashStats: state.pulseDashStats,
+        memoryGlitchStats: state.memoryGlitchStats,
+        coreDefenseStats: state.coreDefenseStats,
+        shiftStats: state.shiftStats,
         progression: state.progression,
         unlockedAchievementIds: state.unlockedAchievementIds,
         wallet: state.wallet ?? defaultWallet,

@@ -1,0 +1,9 @@
+export const CANVAS_WIDTH = 400;
+export const CANVAS_HEIGHT = 300;
+export const PLAYER_Y = CANVAS_HEIGHT - 30;
+export const PLAYER_SIZE = 16;
+export const OBSTACLE_HEIGHT = 24;
+export const OBSTACLE_SPEED = 2.2;
+export const SPAWN_INTERVAL_MS = 1100;
+export const PHASE_SWITCH_COOLDOWN_MS = 200;
+export const DIFFICULTY_INTERVAL_MS = 15000;

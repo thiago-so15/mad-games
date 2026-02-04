@@ -5,6 +5,11 @@ import { PongGame } from "@/components/games/Pong";
 import { BreakoutGame } from "@/components/games/Breakout";
 import { DodgeGame } from "@/components/games/Dodge";
 import { ReactorGame } from "@/components/games/Reactor";
+import { OrbitGame } from "@/components/games/Orbit";
+import { PulseDashGame } from "@/components/games/PulseDash";
+import { MemoryGlitchGame } from "@/components/games/MemoryGlitch";
+import { CoreDefenseGame } from "@/components/games/CoreDefense";
+import { ShiftGame } from "@/components/games/Shift";
 
 const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   snake: SnakeGame,
@@ -12,6 +17,11 @@ const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   breakout: BreakoutGame,
   dodge: DodgeGame,
   reactor: ReactorGame,
+  orbit: OrbitGame,
+  "pulse-dash": PulseDashGame,
+  "memory-glitch": MemoryGlitchGame,
+  "core-defense": CoreDefenseGame,
+  shift: ShiftGame,
 };
 
 interface GameRendererProps {

@@ -27,6 +27,11 @@ export default function ProfilePage() {
   const breakoutStats = useStore((s) => s.breakoutStats);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const reactorStats = useStore((s) => s.reactorStats);
+  const orbitStats = useStore((s) => s.orbitStats);
+  const pulseDashStats = useStore((s) => s.pulseDashStats);
+  const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
+  const coreDefenseStats = useStore((s) => s.coreDefenseStats);
+  const shiftStats = useStore((s) => s.shiftStats);
   const totalXp = useStore((s) => s.progression.totalXp);
   const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
   const wallet = useStore((s) => s.wallet);

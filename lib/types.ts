@@ -108,6 +108,11 @@ export interface GameSettings {
   breakoutSpeedMultiplier: number;
   dodgeSpeedMultiplier: number;
   reactorSpeedMultiplier: number;
+  orbitSpeedMultiplier: number;
+  pulseDashSpeedMultiplier: number;
+  memoryGlitchSpeedMultiplier: number;
+  coreDefenseSpeedMultiplier: number;
+  shiftSpeedMultiplier: number;
   /** Efectos visuales: low = menos animaciones, high = completo */
   visualEffects: "low" | "high";
   /** Modo bajo rendimiento: menos partículas, animaciones reducidas */
@@ -166,6 +171,41 @@ export interface DodgeStats {
 export interface ReactorStats {
   bestPulsesSurvived: number;
   bestCombo: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Orbit (mejor score, partidas, tiempo total) */
+export interface OrbitStats {
+  bestScore: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Pulse Dash (mejor distancia, partidas, tiempo total) */
+export interface PulseDashStats {
+  bestDistance: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Memory Glitch (mejor rondas, partidas, tiempo total) */
+export interface MemoryGlitchStats {
+  bestRounds: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Core Defense (mejor racha bloqueados, partidas, tiempo total) */
+export interface CoreDefenseStats {
+  bestStreak: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Shift (mejor tiempo supervivencia, partidas, tiempo total) */
+export interface ShiftStats {
+  bestSurvivalTimeMs: number;
   gamesPlayed: number;
   totalTimeMs: number;
 }

@@ -11,7 +11,12 @@ function getPersonalStatsLabel(
   pongStats: { gamesPlayed: number; bestStreak: number; bestSurvivalTimeMs: number },
   breakoutStats: { gamesPlayed: number; maxLevelReached: number; bestScoreByMode: Record<string, number> },
   dodgeStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined,
-  reactorStats: { gamesPlayed: number; bestPulsesSurvived: number; bestCombo: number } | undefined
+  reactorStats: { gamesPlayed: number; bestPulsesSurvived: number; bestCombo: number } | undefined,
+  orbitStats: { gamesPlayed: number; bestScore: number } | undefined,
+  pulseDashStats: { gamesPlayed: number; bestDistance: number } | undefined,
+  memoryGlitchStats: { gamesPlayed: number; bestRounds: number } | undefined,
+  coreDefenseStats: { gamesPlayed: number; bestStreak: number } | undefined,
+  shiftStats: { gamesPlayed: number; bestSurvivalTimeMs: number } | undefined
 ): string | null {
   if (slug === "snake") {
     const best = Math.max(0, ...Object.values(snakeStats.bestScoreByMode));
@@ -37,6 +42,21 @@ function getPersonalStatsLabel(
       ? `Mejor: ${reactorStats.bestPulsesSurvived} pulsos · Racha: ${reactorStats.bestCombo}`
       : `${reactorStats.gamesPlayed} partidas`;
   }
+  if (slug === "orbit" && orbitStats?.gamesPlayed) {
+    return orbitStats.bestScore ? `Mejor: ${orbitStats.bestScore}` : `${orbitStats.gamesPlayed} partidas`;
+  }
+  if (slug === "pulse-dash" && pulseDashStats?.gamesPlayed) {
+    return pulseDashStats.bestDistance ? `Mejor: ${Math.floor(pulseDashStats.bestDistance)}` : `${pulseDashStats.gamesPlayed} partidas`;
+  }
+  if (slug === "memory-glitch" && memoryGlitchStats?.gamesPlayed) {
+    return memoryGlitchStats.bestRounds ? `Mejor: ${memoryGlitchStats.bestRounds} rondas` : `${memoryGlitchStats.gamesPlayed} partidas`;
+  }
+  if (slug === "core-defense" && coreDefenseStats?.gamesPlayed) {
+    return coreDefenseStats.bestStreak ? `Mejor racha: ${coreDefenseStats.bestStreak}` : `${coreDefenseStats.gamesPlayed} partidas`;
+  }
+  if (slug === "shift" && shiftStats?.gamesPlayed) {
+    return shiftStats.bestSurvivalTimeMs ? `Mejor: ${Math.floor(shiftStats.bestSurvivalTimeMs / 1000)}s` : `${shiftStats.gamesPlayed} partidas`;
+  }
   return null;
 }
 
@@ -46,6 +66,11 @@ function getGamesPlayed(slug: string, store: ReturnType<typeof useStore.getState
   if (slug === "breakout") return store.breakoutStats.gamesPlayed;
   if (slug === "dodge") return store.dodgeStats?.gamesPlayed ?? 0;
   if (slug === "reactor") return store.reactorStats?.gamesPlayed ?? 0;
+  if (slug === "orbit") return store.orbitStats?.gamesPlayed ?? 0;
+  if (slug === "pulse-dash") return store.pulseDashStats?.gamesPlayed ?? 0;
+  if (slug === "memory-glitch") return store.memoryGlitchStats?.gamesPlayed ?? 0;
+  if (slug === "core-defense") return store.coreDefenseStats?.gamesPlayed ?? 0;
+  if (slug === "shift") return store.shiftStats?.gamesPlayed ?? 0;
   return 0;
 }
 
@@ -56,13 +81,23 @@ function hasPersonalRecord(
   pongStats: { bestStreak: number; bestSurvivalTimeMs: number },
   breakoutStats: { bestScoreByMode: Record<string, number>; maxLevelReached: number },
   dodgeStats: { bestSurvivalTimeMs: number } | undefined,
-  reactorStats: { bestPulsesSurvived: number } | undefined
+  reactorStats: { bestPulsesSurvived: number } | undefined,
+  orbitStats: { bestScore: number } | undefined,
+  pulseDashStats: { bestDistance: number } | undefined,
+  memoryGlitchStats: { bestRounds: number } | undefined,
+  coreDefenseStats: { bestStreak: number } | undefined,
+  shiftStats: { bestSurvivalTimeMs: number } | undefined
 ): boolean {
   if (slug === "snake") return Math.max(0, ...Object.values(snakeStats.bestScoreByMode)) > 0;
   if (slug === "pong") return pongStats.bestStreak > 0 || pongStats.bestSurvivalTimeMs > 0;
   if (slug === "breakout") return Math.max(0, ...Object.values(breakoutStats.bestScoreByMode)) > 0 || breakoutStats.maxLevelReached > 0;
   if (slug === "dodge") return (dodgeStats?.bestSurvivalTimeMs ?? 0) > 0;
   if (slug === "reactor") return (reactorStats?.bestPulsesSurvived ?? 0) > 0;
+  if (slug === "orbit") return (orbitStats?.bestScore ?? 0) > 0;
+  if (slug === "pulse-dash") return (pulseDashStats?.bestDistance ?? 0) > 0;
+  if (slug === "memory-glitch") return (memoryGlitchStats?.bestRounds ?? 0) > 0;
+  if (slug === "core-defense") return (coreDefenseStats?.bestStreak ?? 0) > 0;
+  if (slug === "shift") return (shiftStats?.bestSurvivalTimeMs ?? 0) > 0;
   return false;
 }
 
@@ -78,6 +113,11 @@ export function CatalogGrid() {
   const breakoutStats = useStore((s) => s.breakoutStats);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const reactorStats = useStore((s) => s.reactorStats);
+  const orbitStats = useStore((s) => s.orbitStats);
+  const pulseDashStats = useStore((s) => s.pulseDashStats);
+  const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
+  const coreDefenseStats = useStore((s) => s.coreDefenseStats);
+  const shiftStats = useStore((s) => s.shiftStats);
   const favoriteGameSlugs = useStore((s) => s.profile.favoriteGameSlugs);
   const lastPlayedSlug = useStore((s) => s.profile.lastPlayedGameSlug);
   const favorites = favoriteGameSlugs ?? [];
@@ -139,7 +179,12 @@ export function CatalogGrid() {
             pongStats,
             breakoutStats,
             dodgeStats,
-            reactorStats
+            reactorStats,
+            orbitStats,
+            pulseDashStats,
+            memoryGlitchStats,
+            coreDefenseStats,
+            shiftStats
           );
           const isFavorite = favorites.includes(game.slug);
           const isLastPlayed = lastPlayed === game.slug;
@@ -151,7 +196,12 @@ export function CatalogGrid() {
             pongStats,
             breakoutStats,
             dodgeStats,
-            reactorStats
+            reactorStats,
+            orbitStats,
+            pulseDashStats,
+            memoryGlitchStats,
+            coreDefenseStats,
+            shiftStats
           );
 
           return (

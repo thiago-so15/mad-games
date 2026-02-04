@@ -4,7 +4,7 @@
  */
 
 import type { AchievementDef } from "./types";
-import type { SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats } from "./types";
+import type { SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats } from "./types";
 
 /** Estado mínimo necesario para evaluar logros (evita dependencia circular con store) */
 export interface StoreStateForAchievements {
@@ -15,6 +15,11 @@ export interface StoreStateForAchievements {
   breakoutStats: BreakoutStats;
   dodgeStats: DodgeStats;
   reactorStats: ReactorStats;
+  orbitStats?: OrbitStats;
+  pulseDashStats?: PulseDashStats;
+  memoryGlitchStats?: MemoryGlitchStats;
+  coreDefenseStats?: CoreDefenseStats;
+  shiftStats?: ShiftStats;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
@@ -29,6 +34,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "breakout_first", icon: "🧱", name: "Primer bloque", description: "Jugaste tu primera partida de Breakout", gameSlug: "breakout", rarity: "common" },
   { id: "dodge_first", icon: "🕹️", name: "Primer esquive", description: "Jugaste tu primera partida de Dodge Madness", gameSlug: "dodge", rarity: "common" },
   { id: "reactor_first", icon: "⚡", name: "Primer pulso", description: "Jugaste tu primera partida de Reactor Break", gameSlug: "reactor", rarity: "common" },
+  { id: "orbit_first", icon: "🕹️", name: "Primera órbita", description: "Jugaste tu primera partida de Orbit", gameSlug: "orbit", rarity: "common" },
+  { id: "pulse_dash_first", icon: "⚡", name: "Primer dash", description: "Jugaste tu primera partida de Pulse Dash", gameSlug: "pulse-dash", rarity: "common" },
+  { id: "memory_glitch_first", icon: "🧠", name: "Primer glitch", description: "Jugaste tu primera partida de Memory Glitch", gameSlug: "memory-glitch", rarity: "common" },
+  { id: "core_defense_first", icon: "💣", name: "Primera defensa", description: "Jugaste tu primera partida de Core Defense", gameSlug: "core-defense", rarity: "common" },
+  { id: "shift_first", icon: "🌀", name: "Primer shift", description: "Jugaste tu primera partida de Shift", gameSlug: "shift", rarity: "common" },
 ];
 
 /** Cuenta total de récords personales superados (estimado por juegos con bestScore/bestTime) */
@@ -41,6 +51,11 @@ function countPersonalRecords(state: StoreStateForAchievements): number {
   if (state.breakoutStats.gamesPlayed > 0) count += breakoutBest;
   if (state.dodgeStats.gamesPlayed > 0 && state.dodgeStats.bestSurvivalTimeMs > 0) count += 1;
   if (state.reactorStats.gamesPlayed > 0 && state.reactorStats.bestPulsesSurvived > 0) count += 1;
+  if ((state.orbitStats?.gamesPlayed ?? 0) > 0 && (state.orbitStats?.bestScore ?? 0) > 0) count += 1;
+  if ((state.pulseDashStats?.gamesPlayed ?? 0) > 0 && (state.pulseDashStats?.bestDistance ?? 0) > 0) count += 1;
+  if ((state.memoryGlitchStats?.gamesPlayed ?? 0) > 0 && (state.memoryGlitchStats?.bestRounds ?? 0) > 0) count += 1;
+  if ((state.coreDefenseStats?.gamesPlayed ?? 0) > 0 && (state.coreDefenseStats?.bestStreak ?? 0) > 0) count += 1;
+  if ((state.shiftStats?.gamesPlayed ?? 0) > 0 && (state.shiftStats?.bestSurvivalTimeMs ?? 0) > 0) count += 1;
   return count;
 }
 
@@ -57,7 +72,12 @@ export function getUnlockedAchievementIds(state: StoreStateForAchievements): str
     state.pongStats.gamesPlayed +
     state.breakoutStats.gamesPlayed +
     (state.dodgeStats?.gamesPlayed ?? 0) +
-    (state.reactorStats?.gamesPlayed ?? 0);
+    (state.reactorStats?.gamesPlayed ?? 0) +
+    (state.orbitStats?.gamesPlayed ?? 0) +
+    (state.pulseDashStats?.gamesPlayed ?? 0) +
+    (state.memoryGlitchStats?.gamesPlayed ?? 0) +
+    (state.coreDefenseStats?.gamesPlayed ?? 0) +
+    (state.shiftStats?.gamesPlayed ?? 0);
   const level = getLevel(state.progression.totalXp);
   const records = countPersonalRecords(state);
 
@@ -72,6 +92,11 @@ export function getUnlockedAchievementIds(state: StoreStateForAchievements): str
   if (state.breakoutStats.gamesPlayed >= 1) unlocked.add("breakout_first");
   if ((state.dodgeStats?.gamesPlayed ?? 0) >= 1) unlocked.add("dodge_first");
   if ((state.reactorStats?.gamesPlayed ?? 0) >= 1) unlocked.add("reactor_first");
+  if ((state.orbitStats?.gamesPlayed ?? 0) >= 1) unlocked.add("orbit_first");
+  if ((state.pulseDashStats?.gamesPlayed ?? 0) >= 1) unlocked.add("pulse_dash_first");
+  if ((state.memoryGlitchStats?.gamesPlayed ?? 0) >= 1) unlocked.add("memory_glitch_first");
+  if ((state.coreDefenseStats?.gamesPlayed ?? 0) >= 1) unlocked.add("core_defense_first");
+  if ((state.shiftStats?.gamesPlayed ?? 0) >= 1) unlocked.add("shift_first");
 
   return Array.from(unlocked);
 }

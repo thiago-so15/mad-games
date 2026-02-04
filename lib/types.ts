@@ -28,19 +28,31 @@ export interface GameMeta {
   slug: string;
   name: string;
   description: string;
-  /** Emoji o path a imagen para la card */
   icon?: string;
-  /** Si el juego está implementado */
   available: boolean;
+  /** Para filtros en catálogo */
+  category?: "arcade" | "clásico" | "habilidad";
+  /** Dificultad percibida 1-3 */
+  difficulty?: 1 | 2 | 3;
 }
 
-/** Configuración global (sonido, velocidad base, etc.) */
+/** Tema de la plataforma */
+export type Theme = "light" | "dark";
+
+/** Configuración global (sonido, tema, velocidad, etc.) */
 export interface GameSettings {
   soundEnabled: boolean;
-  /** Multiplicador de velocidad en Snake (1 = normal, >1 = más lento) */
+  theme: Theme;
+  /** Esquema de controles (para mostrar en ayuda) */
+  controlScheme: "keyboard" | "keyboard-mouse";
   snakeSpeedMultiplier: number;
-  /** Multiplicador de velocidad en Pong (1 = normal) */
   pongSpeedMultiplier: number;
+  breakoutSpeedMultiplier: number;
+}
+
+/** Progresión global: XP y nivel (calculado) */
+export interface Progression {
+  totalXp: number;
 }
 
 /** Estadísticas por juego (mejor score por modo, partidas, tiempo) */
@@ -50,7 +62,7 @@ export interface SnakeStats {
   totalTimeMs: number;
 }
 
-/** Estadísticas Pong (partidas, victorias, derrotas, racha, survival) */
+/** Estadísticas Pong (partidas, victorias, derrotas, racha, survival, tiempo total) */
 export interface PongStats {
   gamesPlayed: number;
   wins: number;
@@ -58,4 +70,13 @@ export interface PongStats {
   currentStreak: number;
   bestStreak: number;
   bestSurvivalTimeMs: number;
+  totalTimeMs: number;
+}
+
+/** Estadísticas Breakout (mejor score por modo, nivel máximo, partidas, tiempo) */
+export interface BreakoutStats {
+  bestScoreByMode: Partial<Record<"campaign" | "endless" | "challenge", number>>;
+  maxLevelReached: number;
+  gamesPlayed: number;
+  totalTimeMs: number;
 }

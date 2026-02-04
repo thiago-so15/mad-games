@@ -20,6 +20,7 @@ export function PongGame() {
   const [mode, setMode] = useState<GameMode>("classic");
   const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>("normal");
   const recordedResultRef = useRef(false);
+  const gameStartTimeRef = useRef<number>(0);
 
   const speedMultiplier = settings.pongSpeedMultiplier ?? 1;
   const { state, start, launch, togglePause } = usePongGame(
@@ -43,12 +44,14 @@ export function PongGame() {
 
   const handlePlay = useCallback(() => {
     recordedResultRef.current = false;
+    gameStartTimeRef.current = Date.now();
     setScreen("playing");
     start();
   }, [start]);
 
   const handleRetry = useCallback(() => {
     recordedResultRef.current = false;
+    gameStartTimeRef.current = Date.now();
     setScreen("playing");
     start();
   }, [start]);
@@ -58,15 +61,16 @@ export function PongGame() {
       return;
     recordedResultRef.current = true;
 
+    const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
     const playerWon = state.winner === "left";
     if (mode === "vsAi") {
-      updatePongStats({ won: playerWon });
+      updatePongStats({ won: playerWon, timePlayedMs });
     } else if (mode === "local2p") {
-      updatePongStats({});
+      updatePongStats({ timePlayedMs });
     } else if (mode === "survival") {
-      updatePongStats({ survivalTimeMs: state.survivalTimeMs });
+      updatePongStats({ survivalTimeMs: state.survivalTimeMs, timePlayedMs });
     } else {
-      updatePongStats({ won: playerWon });
+      updatePongStats({ won: playerWon, timePlayedMs });
     }
 
     addScore({

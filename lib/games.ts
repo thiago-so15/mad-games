@@ -11,6 +11,8 @@ export const GAMES_CATALOG: GameMeta[] = [
     description: "Clásico snake. Come, crece y no te muerdas la cola.",
     icon: "🐍",
     available: true,
+    category: "clásico",
+    difficulty: 1,
   },
   {
     slug: "pong",
@@ -18,6 +20,17 @@ export const GAMES_CATALOG: GameMeta[] = [
     description: "Classic con power-ups, Vs AI, 2 jugadores o Survival. Palas dinámicas y rebotes.",
     icon: "🏓",
     available: true,
+    category: "arcade",
+    difficulty: 2,
+  },
+  {
+    slug: "breakout",
+    name: "Breakout v2",
+    description: "Rompebloques con power-ups, niveles y modos Campaign, Endless y Challenge.",
+    icon: "🧱",
+    available: true,
+    category: "arcade",
+    difficulty: 2,
   },
 ];
 

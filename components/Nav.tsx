@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { getShopItemById } from "@/lib/shop";
@@ -49,16 +50,23 @@ export function Nav() {
 
   return (
     <nav
-      className="border-b border-zinc-200 bg-zinc-100/95 dark:border-zinc-800 dark:bg-zinc-900/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-100/80 dark:supports-[backdrop-filter]:bg-zinc-900/80"
+      className="border-b border-zinc-200 bg-white/95 dark:border-zinc-700 dark:bg-zinc-800/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-800/80"
       role="navigation"
     >
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
           className="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 transition-arcade hover-lift dark:text-white"
+          aria-label="MAD GAMES - Inicio"
         >
-          <span className="text-red-500 dark:text-red-400" aria-hidden>◆</span>
-          <span className="text-zinc-900 dark:text-white"><span className="text-red-500 dark:text-red-400">MAD</span> GAMES</span>
+          <Image
+            src="/mad-games-logo.png"
+            alt=""
+            width={40}
+            height={40}
+            className="h-8 w-8 rounded object-contain sm:h-9 sm:w-9"
+          />
+          <span className="hidden text-zinc-900 dark:text-white sm:inline"><span className="text-red-500 dark:text-red-400">MAD</span> GAMES</span>
         </Link>
         <ul className="flex items-center gap-1 sm:gap-2">
           {links.map(({ href, label }) => {

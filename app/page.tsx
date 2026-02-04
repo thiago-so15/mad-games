@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { HomeStats } from "../components/HomeStats";
 import { DailyChallengeCard } from "../components/DailyChallengeCard";
 
@@ -6,9 +7,14 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center text-center">
       <div className="animate-[fade-in_0.4s_ease-out]">
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-5xl md:text-6xl">
-          <span className="text-red-500 dark:text-red-400">MAD</span> GAMES
-        </h1>
+        <Image
+          src="/mad-games-logo.png"
+          alt="MAD GAMES"
+          width={280}
+          height={280}
+          className="mx-auto h-auto w-48 sm:w-56 md:w-64"
+          priority
+        />
         <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400 sm:text-xl">
           Arcade moderno. Jugá, sumá XP, desbloqueá logros y niveles.
         </p>

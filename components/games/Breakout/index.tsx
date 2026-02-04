@@ -10,11 +10,16 @@ import { ResultScreen } from "./ResultScreen";
 
 type Screen = "start" | "playing" | "result";
 
-export function BreakoutGame() {
+interface BreakoutGameProps {
+  slug: string;
+}
+
+export function BreakoutGame({ slug }: BreakoutGameProps) {
   const settings = useStore((s) => s.settings);
   const breakoutStats = useStore((s) => s.breakoutStats);
   const addScore = useStore((s) => s.addScore);
   const updateBreakoutStats = useStore((s) => s.updateBreakoutStats);
+  const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
   const [screen, setScreen] = useState<Screen>("start");
   const [mode, setMode] = useState<GameMode>("campaign");
@@ -25,9 +30,10 @@ export function BreakoutGame() {
 
   const handlePlay = useCallback(() => {
     recordedRef.current = false;
+    setLastPlayedGame(slug);
     setScreen("playing");
     start(0);
-  }, [start]);
+  }, [start, slug, setLastPlayedGame]);
 
   const handleRetry = useCallback(() => {
     recordedRef.current = false;

@@ -10,11 +10,16 @@ import { ResultScreen } from "./ResultScreen";
 
 type Screen = "start" | "playing" | "result";
 
-export function PongGame() {
+interface PongGameProps {
+  slug: string;
+}
+
+export function PongGame({ slug }: PongGameProps) {
   const settings = useStore((s) => s.settings);
   const pongStats = useStore((s) => s.pongStats);
   const addScore = useStore((s) => s.addScore);
   const updatePongStats = useStore((s) => s.updatePongStats);
+  const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
   const [screen, setScreen] = useState<Screen>("start");
   const [mode, setMode] = useState<GameMode>("classic");
@@ -45,9 +50,10 @@ export function PongGame() {
   const handlePlay = useCallback(() => {
     recordedResultRef.current = false;
     gameStartTimeRef.current = Date.now();
+    setLastPlayedGame(slug);
     setScreen("playing");
     start();
-  }, [start]);
+  }, [start, slug, setLastPlayedGame]);
 
   const handleRetry = useCallback(() => {
     recordedResultRef.current = false;

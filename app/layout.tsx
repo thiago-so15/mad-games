@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mad Games — Plataforma de juegos",
-  description: "Juegos online en un solo lugar. Snake y más.",
+  title: "MAD GAMES — Arcade",
+  description: "Arcade moderno. Múltiples juegos, una plataforma. Rápido, desafiante, minimalista.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200`}
       >
         <StoreHydration />
         <ThemeProvider />

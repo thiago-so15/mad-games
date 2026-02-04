@@ -10,14 +10,21 @@ export default function SettingsPage() {
 
   const clearAllData = () => {
     if (typeof window === "undefined") return;
-    if (!confirm("¿Borrar todo el progreso local (perfil, puntajes, XP, estadísticas)? No se puede deshacer.")) return;
+    if (!confirm("¿Borrar todo el progreso local (perfil, puntajes, XP, logros, favoritos)? No se puede deshacer.")) return;
     useStore.setState({
-      profile: { nickname: "Jugador", avatar: "🎮", updatedAt: Date.now() },
+      profile: {
+        nickname: "Jugador",
+        avatar: "🎮",
+        updatedAt: Date.now(),
+        favoriteGameSlugs: [],
+        lastPlayedGameSlug: null,
+      },
       scores: [],
       settings: {
         soundEnabled: true,
         theme: "dark",
         controlScheme: "keyboard",
+        visualEffects: "high",
         snakeSpeedMultiplier: 1,
         pongSpeedMultiplier: 1,
         breakoutSpeedMultiplier: 1,
@@ -30,6 +37,7 @@ export default function SettingsPage() {
       dodgeStats: { bestSurvivalTimeMs: 0, gamesPlayed: 0, totalTimeMs: 0 },
       reactorStats: { bestPulsesSurvived: 0, bestCombo: 0, gamesPlayed: 0, totalTimeMs: 0 },
       progression: { totalXp: 0 },
+      unlockedAchievementIds: [],
     });
   };
 
@@ -42,15 +50,16 @@ export default function SettingsPage() {
 
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Apariencia</h2>
-        <div className="mt-4">
-          <label className="block text-sm text-zinc-500 dark:text-zinc-400">Tema</label>
+        <div className="mt-4 space-y-6">
+          <div>
+            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Tema</label>
           <div className="mt-2 flex gap-2">
             <button
               type="button"
               onClick={() => setSettings({ theme: "light" })}
-              className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
+                className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
                 settings.theme === "light"
-                  ? "border-amber-500 bg-amber-500/20 text-amber-700 dark:text-amber-400"
+                  ? "border-red-500 bg-red-500/15 text-red-600 dark:text-red-400"
                   : "border-zinc-300 bg-white text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-500"
               }`}
             >
@@ -61,12 +70,41 @@ export default function SettingsPage() {
               onClick={() => setSettings({ theme: "dark" })}
               className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
                 settings.theme === "dark"
-                  ? "border-amber-500 bg-amber-500/20 text-amber-700 dark:text-amber-400"
+                  ? "border-red-500 bg-red-500/15 text-red-600 dark:text-red-400"
                   : "border-zinc-300 bg-white text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-500"
               }`}
             >
               Oscuro
             </button>
+          </div>
+          </div>
+          <div>
+            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Efectos visuales</label>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSettings({ visualEffects: "low" })}
+                className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
+                  (settings.visualEffects ?? "high") === "low"
+                    ? "border-red-500 bg-red-500/15 text-red-600 dark:text-red-400"
+                    : "border-zinc-300 bg-white text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                }`}
+              >
+                Bajo
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettings({ visualEffects: "high" })}
+                className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
+                  (settings.visualEffects ?? "high") === "high"
+                    ? "border-red-500 bg-red-500/15 text-red-600 dark:text-red-400"
+                    : "border-zinc-300 bg-white text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                }`}
+              >
+                Alto
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Animaciones y feedback visual</p>
           </div>
         </div>
       </section>

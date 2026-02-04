@@ -27,10 +27,10 @@ export function Nav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-zinc-900 transition hover:text-amber-600 dark:text-white dark:hover:text-amber-400"
+          className="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 transition-arcade hover-lift dark:text-white"
         >
-          <span className="text-xl" aria-hidden>🎮</span>
-          Mad Games
+          <span className="text-red-500 dark:text-red-400" aria-hidden>◆</span>
+          <span className="text-zinc-900 dark:text-white"><span className="text-red-500 dark:text-red-400">MAD</span> GAMES</span>
         </Link>
         <ul className="flex items-center gap-1 sm:gap-2">
           {links.map(({ href, label }) => {
@@ -40,9 +40,9 @@ export function Nav() {
               <li key={href}>
                 <Link
                   href={href}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition sm:px-4 ${
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition-arcade sm:px-4 ${
                     isActive
-                      ? "bg-amber-500/20 text-amber-700 dark:bg-zinc-700 dark:text-amber-400"
+                      ? "bg-red-500/15 text-red-600 dark:bg-zinc-700 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
                   }`}
                 >
@@ -60,8 +60,8 @@ export function Nav() {
         </ul>
       </div>
       {isInGame && (
-        <div className="border-t border-zinc-200 bg-amber-500/10 dark:border-zinc-800 dark:bg-amber-500/10">
-          <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-1.5 text-sm text-amber-800 dark:text-amber-200">
+        <div className="border-t border-zinc-200 bg-red-500/10 dark:border-zinc-800 dark:bg-red-500/10">
+          <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-1.5 text-sm text-red-800 dark:text-red-200">
             <span>Jugando</span>
             <Link
               href="/games"

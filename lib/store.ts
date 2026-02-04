@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, Progression } from "./types";
+import { getUnlockedAchievementIds } from "./achievements";
 
 const STORAGE_KEY = "mad-games-store";
 
@@ -10,6 +11,7 @@ const defaultSettings: GameSettings = {
   soundEnabled: true,
   theme: "dark",
   controlScheme: "keyboard",
+  visualEffects: "high",
   snakeSpeedMultiplier: 1,
   pongSpeedMultiplier: 1,
   breakoutSpeedMultiplier: 1,
@@ -79,6 +81,16 @@ export function getXpToNextLevel(totalXp: number): { level: number; xpInLevel: n
   return { level, xpInLevel, xpNeeded };
 }
 
+function mergeAchievementIds(
+  state: ReturnType<typeof getDefaultState>,
+  updates: Partial<ReturnType<typeof getDefaultState>>
+): string[] {
+  const next = { ...state, ...updates };
+  const newIds = getUnlockedAchievementIds(next);
+  const current = state.unlockedAchievementIds ?? [];
+  return Array.from(new Set([...current, ...newIds]));
+}
+
 type StoreState = {
   profile: UserProfile;
   scores: GameScore[];
@@ -89,8 +101,11 @@ type StoreState = {
   dodgeStats: DodgeStats;
   reactorStats: ReactorStats;
   progression: Progression;
+  unlockedAchievementIds: string[];
   setProfile: (partial: Partial<UserProfile>) => void;
   setSettings: (partial: Partial<GameSettings>) => void;
+  setLastPlayedGame: (gameSlug: string) => void;
+  toggleFavorite: (gameSlug: string) => void;
   addScore: (score: Omit<GameScore, "playedAt">) => void;
   addXp: (amount: number) => void;
   getScoresByGame: (gameSlug: string) => GameScore[];
@@ -100,12 +115,15 @@ type StoreState = {
   updateBreakoutStats: (params: { mode: "campaign" | "endless" | "challenge"; score: number; levelReached: number; timePlayedMs: number; levelCompleteOnly?: boolean }) => void;
   updateDodgeStats: (params: { survivalTimeMs: number; timePlayedMs: number }) => void;
   updateReactorStats: (params: { pulsesSurvived: number; bestCombo: number; timePlayedMs: number }) => void;
+  mergeAchievements: () => void;
 };
 
 const defaultProfile: UserProfile = {
   nickname: "Jugador",
   avatar: "🎮",
   updatedAt: 0,
+  favoriteGameSlugs: [],
+  lastPlayedGameSlug: null,
 };
 
 function getDefaultState() {
@@ -119,6 +137,7 @@ function getDefaultState() {
     dodgeStats: defaultDodgeStats,
     reactorStats: defaultReactorStats,
     progression: defaultProgression,
+    unlockedAchievementIds: [] as string[],
   };
 }
 
@@ -149,11 +168,41 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           settings: { ...state.settings, ...partial },
         })),
+      setLastPlayedGame: (gameSlug) =>
+        set((state) => ({
+          profile: {
+            ...state.profile,
+            lastPlayedGameSlug: gameSlug,
+            updatedAt: Date.now(),
+          },
+        })),
+      toggleFavorite: (gameSlug) =>
+        set((state) => {
+          const favs = state.profile.favoriteGameSlugs ?? [];
+          const next = favs.includes(gameSlug)
+            ? favs.filter((s) => s !== gameSlug)
+            : [...favs, gameSlug];
+          return {
+            profile: {
+              ...state.profile,
+              favoriteGameSlugs: next,
+              updatedAt: Date.now(),
+            },
+          };
+        }),
+      mergeAchievements: () =>
+        set((state) => {
+          const next = getUnlockedAchievementIds(state);
+          const current = state.unlockedAchievementIds ?? [];
+          const merged = Array.from(new Set([...current, ...next]));
+          if (merged.length === current.length) return state;
+          return { unlockedAchievementIds: merged };
+        }),
       updateSnakeStats: ({ mode, score, timePlayedMs }) =>
         set((state) => {
           const prev = state.snakeStats.bestScoreByMode[mode] ?? 0;
           const isNewRecord = score > prev;
-          return {
+          const updates = {
             snakeStats: {
               ...state.snakeStats,
               bestScoreByMode: {
@@ -167,6 +216,7 @@ export const useStore = create<StoreState>()(
               totalXp: state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0),
             },
           };
+          return { ...updates, unlockedAchievementIds: mergeAchievementIds(state, updates) };
         }),
       updatePongStats: ({ won, survivalTimeMs, timePlayedMs }) =>
         set((state) => {
@@ -174,8 +224,9 @@ export const useStore = create<StoreState>()(
           const bestSurvivalTimeMs = Math.max(prev.bestSurvivalTimeMs, survivalTimeMs ?? 0);
           const addedTime = timePlayedMs ?? 0;
           const xp = state.progression.totalXp + XP_PER_GAME;
+          let updates: { pongStats: typeof state.pongStats; progression: { totalXp: number } };
           if (won === undefined) {
-            return {
+            updates = {
               pongStats: {
                 ...prev,
                 gamesPlayed: prev.gamesPlayed + 1,
@@ -184,21 +235,23 @@ export const useStore = create<StoreState>()(
               },
               progression: { totalXp: xp },
             };
+          } else {
+            const newStreak = won ? prev.currentStreak + 1 : 0;
+            const isNewRecord = newStreak > 0 && newStreak >= prev.bestStreak;
+            updates = {
+              pongStats: {
+                gamesPlayed: prev.gamesPlayed + 1,
+                wins: prev.wins + (won ? 1 : 0),
+                losses: prev.losses + (won ? 0 : 1),
+                currentStreak: newStreak,
+                bestStreak: Math.max(prev.bestStreak, newStreak),
+                bestSurvivalTimeMs,
+                totalTimeMs: (prev.totalTimeMs ?? 0) + addedTime,
+              },
+              progression: { totalXp: xp + (isNewRecord && won ? XP_NEW_RECORD : 0) },
+            };
           }
-          const newStreak = won ? prev.currentStreak + 1 : 0;
-          const isNewRecord = newStreak > 0 && newStreak >= prev.bestStreak;
-          return {
-            pongStats: {
-              gamesPlayed: prev.gamesPlayed + 1,
-              wins: prev.wins + (won ? 1 : 0),
-              losses: prev.losses + (won ? 0 : 1),
-              currentStreak: newStreak,
-              bestStreak: Math.max(prev.bestStreak, newStreak),
-              bestSurvivalTimeMs,
-              totalTimeMs: (prev.totalTimeMs ?? 0) + addedTime,
-            },
-            progression: { totalXp: xp + (isNewRecord && won ? XP_NEW_RECORD : 0) },
-          };
+          return { ...updates, unlockedAchievementIds: mergeAchievementIds(state, updates) };
         }),
       updateBreakoutStats: ({ mode, score, levelReached, timePlayedMs, levelCompleteOnly }) =>
         set((state) => {
@@ -207,32 +260,32 @@ export const useStore = create<StoreState>()(
           const maxLevel = Math.max(prev.maxLevelReached, levelReached);
           const isNewRecord = score > (prev.bestScoreByMode[mode] ?? 0);
           const xp = state.progression.totalXp + (levelCompleteOnly ? XP_CHALLENGE : XP_PER_GAME) + (isNewRecord ? XP_NEW_RECORD : 0);
-          if (levelCompleteOnly) {
-            return {
-              breakoutStats: {
-                ...prev,
-                bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore },
-                maxLevelReached: maxLevel,
-              },
-              progression: { totalXp: xp },
-            };
-          }
-          return {
-            breakoutStats: {
-              ...prev,
-              bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore },
-              maxLevelReached: maxLevel,
-              gamesPlayed: prev.gamesPlayed + 1,
-              totalTimeMs: prev.totalTimeMs + timePlayedMs,
-            },
-            progression: { totalXp: xp },
-          };
+          const updates = levelCompleteOnly
+            ? {
+                breakoutStats: {
+                  ...prev,
+                  bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore },
+                  maxLevelReached: maxLevel,
+                },
+                progression: { totalXp: xp },
+              }
+            : {
+                breakoutStats: {
+                  ...prev,
+                  bestScoreByMode: { ...prev.bestScoreByMode, [mode]: bestScore },
+                  maxLevelReached: maxLevel,
+                  gamesPlayed: prev.gamesPlayed + 1,
+                  totalTimeMs: prev.totalTimeMs + timePlayedMs,
+                },
+                progression: { totalXp: xp },
+              };
+          return { ...updates, unlockedAchievementIds: mergeAchievementIds(state, updates) };
         }),
       updateDodgeStats: ({ survivalTimeMs, timePlayedMs }) =>
         set((state) => {
           const prev = state.dodgeStats;
           const isNewRecord = survivalTimeMs > (prev.bestSurvivalTimeMs ?? 0);
-          return {
+          const updates = {
             dodgeStats: {
               ...prev,
               bestSurvivalTimeMs: Math.max(prev.bestSurvivalTimeMs ?? 0, survivalTimeMs),
@@ -243,12 +296,13 @@ export const useStore = create<StoreState>()(
               totalXp: state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0),
             },
           };
+          return { ...updates, unlockedAchievementIds: mergeAchievementIds(state, updates) };
         }),
       updateReactorStats: ({ pulsesSurvived, bestCombo, timePlayedMs }) =>
         set((state) => {
           const prev = state.reactorStats;
           const isNewRecord = pulsesSurvived > (prev.bestPulsesSurvived ?? 0);
-          return {
+          const updates = {
             reactorStats: {
               ...prev,
               bestPulsesSurvived: Math.max(prev.bestPulsesSurvived ?? 0, pulsesSurvived),
@@ -260,6 +314,7 @@ export const useStore = create<StoreState>()(
               totalXp: state.progression.totalXp + XP_PER_GAME + (isNewRecord ? XP_NEW_RECORD : 0),
             },
           };
+          return { ...updates, unlockedAchievementIds: mergeAchievementIds(state, updates) };
         }),
       addScore: (entry) =>
         set((state) => ({
@@ -306,6 +361,7 @@ export const useStore = create<StoreState>()(
         dodgeStats: state.dodgeStats,
         reactorStats: state.reactorStats,
         progression: state.progression,
+        unlockedAchievementIds: state.unlockedAchievementIds,
       }),
       skipHydration: true,
     }

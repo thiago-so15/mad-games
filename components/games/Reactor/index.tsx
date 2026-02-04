@@ -9,11 +9,16 @@ import { ResultScreen } from "./ResultScreen";
 
 type Screen = "start" | "playing" | "result";
 
-export function ReactorGame() {
+interface ReactorGameProps {
+  slug: string;
+}
+
+export function ReactorGame({ slug }: ReactorGameProps) {
   const settings = useStore((s) => s.settings);
   const reactorStats = useStore((s) => s.reactorStats);
   const addScore = useStore((s) => s.addScore);
   const updateReactorStats = useStore((s) => s.updateReactorStats);
+  const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
@@ -25,9 +30,10 @@ export function ReactorGame() {
   const handlePlay = useCallback(() => {
     recordedRef.current = false;
     gameStartTimeRef.current = Date.now();
+    setLastPlayedGame(slug);
     setScreen("playing");
     start();
-  }, [start]);
+  }, [start, slug, setLastPlayedGame]);
 
   const handleRetry = useCallback(() => {
     recordedRef.current = false;

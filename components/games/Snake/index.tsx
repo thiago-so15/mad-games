@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { useVisibilityPause } from "@/lib/useVisibilityPause";
 import { useSnakeGame } from "@/lib/games/snake/useSnakeGame";
 import type { GameMode } from "@/lib/games/snake/types";
 import { StartScreen } from "./StartScreen";
@@ -10,11 +11,16 @@ import { GameOverScreen } from "./GameOverScreen";
 
 type Screen = "start" | "playing" | "gameOver";
 
-export function SnakeGame() {
+interface SnakeGameProps {
+  slug: string;
+}
+
+export function SnakeGame({ slug }: SnakeGameProps) {
   const settings = useStore((s) => s.settings);
   const snakeStats = useStore((s) => s.snakeStats);
   const addScore = useStore((s) => s.addScore);
   const updateSnakeStats = useStore((s) => s.updateSnakeStats);
+  const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
   const [screen, setScreen] = useState<Screen>("start");
   const [mode, setMode] = useState<GameMode>("classic");
@@ -37,9 +43,10 @@ export function SnakeGame() {
 
   const handlePlay = useCallback(() => {
     recordedGameOverRef.current = false;
+    setLastPlayedGame(slug);
     setScreen("playing");
     start();
-  }, [start]);
+  }, [start, slug, setLastPlayedGame]);
 
   const handleRetry = useCallback(() => {
     recordedGameOverRef.current = false;
@@ -59,6 +66,12 @@ export function SnakeGame() {
     });
     setScreen("gameOver");
   }, [screen, state.gameOver, mode, state.score, getTimePlayedMs, updateSnakeStats, addScore]);
+
+  useVisibilityPause(
+    useCallback(() => {
+      if (screen === "playing" && !state.paused && !state.gameOver) togglePause();
+    }, [screen, state.paused, state.gameOver, togglePause])
+  );
 
   const bestForMode = snakeStats.bestScoreByMode[mode] ?? 0;
   const bestScore = Math.max(bestForMode, state.score);

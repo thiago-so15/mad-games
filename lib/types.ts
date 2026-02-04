@@ -7,6 +7,10 @@ export interface UserProfile {
   nickname: string;
   avatar: string; // emoji o URL de imagen local
   updatedAt: number;
+  /** Slugs de juegos marcados como favoritos (orden en catálogo) */
+  favoriteGameSlugs: string[];
+  /** Último juego jugado (para indicador en catálogo) */
+  lastPlayedGameSlug: string | null;
 }
 
 export interface GameScore {
@@ -50,6 +54,8 @@ export interface GameSettings {
   breakoutSpeedMultiplier: number;
   dodgeSpeedMultiplier: number;
   reactorSpeedMultiplier: number;
+  /** Efectos visuales: low = menos animaciones, high = completo */
+  visualEffects: "low" | "high";
 }
 
 /** Progresión global: XP y nivel (calculado) */
@@ -96,4 +102,14 @@ export interface ReactorStats {
   bestCombo: number;
   gamesPlayed: number;
   totalTimeMs: number;
+}
+
+/** Definición de un logro (local, sin backend) */
+export interface AchievementDef {
+  id: string;
+  icon: string; // emoji o clave de icono
+  name: string;
+  description: string;
+  /** Juego específico o null = global */
+  gameSlug: string | null;
 }

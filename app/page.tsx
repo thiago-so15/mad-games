@@ -6,10 +6,10 @@ export default function Home() {
     <div className="flex flex-col items-center text-center">
       <div className="animate-[fade-in_0.4s_ease-out]">
         <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-5xl md:text-6xl">
-          Mad Games
+          <span className="text-red-500 dark:text-red-400">MAD</span> GAMES
         </h1>
         <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400 sm:text-xl">
-          Tu arcade en el navegador. Jugá, sumá XP y mejorá tus marcas.
+          Arcade moderno. Jugá, sumá XP, desbloqueá logros.
         </p>
       </div>
 
@@ -18,7 +18,7 @@ export default function Home() {
       <div className="mt-12 flex flex-wrap justify-center gap-4">
         <Link
           href="/games"
-          className="rounded-xl bg-amber-500 px-8 py-4 text-lg font-semibold text-zinc-900 shadow-lg transition hover:bg-amber-400 active:scale-[0.98] dark:bg-amber-500 dark:hover:bg-amber-400"
+          className="rounded-xl bg-red-500 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-arcade hover-lift hover:bg-red-600 active:scale-[0.98] dark:bg-red-500 dark:hover:bg-red-400"
         >
           Ver catálogo
         </Link>

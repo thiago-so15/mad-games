@@ -6,7 +6,7 @@ import { BreakoutGame } from "@/components/games/Breakout";
 import { DodgeGame } from "@/components/games/Dodge";
 import { ReactorGame } from "@/components/games/Reactor";
 
-const GAME_COMPONENTS: Record<string, React.ComponentType<object>> = {
+const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   snake: SnakeGame,
   pong: PongGame,
   breakout: BreakoutGame,
@@ -21,5 +21,5 @@ interface GameRendererProps {
 export function GameRenderer({ slug }: GameRendererProps) {
   const Game = GAME_COMPONENTS[slug];
   if (!Game) return null;
-  return <Game />;
+  return <Game slug={slug} />;
 }

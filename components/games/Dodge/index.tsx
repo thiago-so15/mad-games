@@ -9,11 +9,16 @@ import { ResultScreen } from "./ResultScreen";
 
 type Screen = "start" | "playing" | "result";
 
-export function DodgeGame() {
+interface DodgeGameProps {
+  slug: string;
+}
+
+export function DodgeGame({ slug }: DodgeGameProps) {
   const settings = useStore((s) => s.settings);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const addScore = useStore((s) => s.addScore);
   const updateDodgeStats = useStore((s) => s.updateDodgeStats);
+  const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
@@ -25,9 +30,10 @@ export function DodgeGame() {
   const handlePlay = useCallback(() => {
     recordedRef.current = false;
     gameStartTimeRef.current = Date.now();
+    setLastPlayedGame(slug);
     setScreen("playing");
     start();
-  }, [start]);
+  }, [start, slug, setLastPlayedGame]);
 
   const handleRetry = useCallback(() => {
     recordedRef.current = false;

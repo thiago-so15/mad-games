@@ -5,12 +5,65 @@
 
 export interface UserProfile {
   nickname: string;
-  avatar: string; // emoji o URL de imagen local
+  avatar: string; // emoji por defecto; puede ser overridden por item equipado
   updatedAt: number;
-  /** Slugs de juegos marcados como favoritos (orden en catálogo) */
   favoriteGameSlugs: string[];
-  /** Último juego jugado (para indicador en catálogo) */
   lastPlayedGameSlug: string | null;
+}
+
+/** Moneda de la plataforma. Solo se gana jugando; no se compra con dinero real. */
+export interface Wallet {
+  madCoins: number;
+}
+
+/** Categorías de la tienda */
+export type ShopCategory = "profile" | "platform" | "games";
+
+/** Subcategorías por categoría */
+export type ShopItemType =
+  | "avatar"
+  | "border"
+  | "title"
+  | "badge"
+  | "theme"
+  | "ui"
+  | "effect"
+  | "gameSkin";
+
+/** Estado de un ítem para el usuario */
+export type ShopItemState = "locked" | "available" | "purchased" | "equipped";
+
+/** Ítem de la tienda. Todo es permanente; no consumibles, no RNG. */
+export interface ShopItem {
+  id: string;
+  category: ShopCategory;
+  type: ShopItemType;
+  name: string;
+  description: string;
+  /** Precio en MAD Coins */
+  price: number;
+  /** Emoji o valor a aplicar al equipar (avatar, badge, título, tema, etc.) */
+  value: string;
+  /** Opcional: nivel mínimo para ver como "disponible" (no bloquea compra si ya se compró) */
+  minLevel?: number;
+  icon?: string;
+}
+
+/** Slots de equipamiento (uno por tipo aplicable) */
+export type EquipSlot = "avatar" | "border" | "title" | "badge" | "theme";
+
+export interface EquippedItems {
+  avatar: string | null;   // itemId o null = usar profile.avatar
+  border: string | null;
+  title: string | null;
+  badge: string | null;
+  theme: string | null;   // itemId o null = usar settings.theme
+}
+
+export interface Inventory {
+  /** IDs de ítems comprados (permanentes) */
+  purchasedItemIds: string[];
+  equipped: EquippedItems;
 }
 
 export interface GameScore {
@@ -43,8 +96,9 @@ export interface GameMeta {
 /** Tema de la plataforma */
 export type Theme = "light" | "dark";
 
-/** Configuración global (sonido, tema, velocidad, etc.) */
+/** Configuración global (sonido, tema, velocidad, etc.) — v4 */
 export interface GameSettings {
+  /** Sonido master (efectos, música si hubiera) */
   soundEnabled: boolean;
   theme: Theme;
   /** Esquema de controles (para mostrar en ayuda) */
@@ -56,12 +110,24 @@ export interface GameSettings {
   reactorSpeedMultiplier: number;
   /** Efectos visuales: low = menos animaciones, high = completo */
   visualEffects: "low" | "high";
+  /** Modo bajo rendimiento: menos partículas, animaciones reducidas */
+  lowPerformanceMode: boolean;
 }
 
-/** Progresión global: XP y nivel (calculado) */
+/** Progresión global: XP y nivel (calculado). Niveles desbloquean bordes/títulos/badges. */
 export interface Progression {
   totalXp: number;
 }
+
+/** Niveles no bloquean contenido; desbloquean bordes visuales, títulos, badges locales */
+export const LEVEL_UNLOCKS: Record<number, { border?: boolean; title?: string; badge?: string }> = {
+  1: { title: "Principiante" },
+  3: { border: true, title: "Jugador" },
+  5: { badge: "★", title: "Regular" },
+  10: { border: true, badge: "★★", title: "Avanzado" },
+  15: { title: "Experto" },
+  20: { border: true, badge: "★★★", title: "Maestro" },
+};
 
 /** Estadísticas por juego (mejor score por modo, partidas, tiempo) */
 export interface SnakeStats {
@@ -104,12 +170,37 @@ export interface ReactorStats {
   totalTimeMs: number;
 }
 
-/** Definición de un logro (local, sin backend) */
+/** Rareza visual de logros — v3 */
+export type AchievementRarity = "common" | "rare" | "legendary";
+
+/** Definición de un logro (local, sin backend) — v3 con rareza */
 export interface AchievementDef {
   id: string;
-  icon: string; // emoji o clave de icono
+  icon: string;
   name: string;
   description: string;
   /** Juego específico o null = global */
   gameSlug: string | null;
+  /** Rareza visual (común / raro / legendario) */
+  rarity: AchievementRarity;
+}
+
+/** Eventos que la plataforma maneja; los juegos emiten, no acceden al store directo */
+export type GameEventType =
+  | "gameStart"
+  | "gameEnd"
+  | "scoreUpdate"
+  | "newRecord"
+  | "levelUp"
+  | "itemPurchased"
+  | "itemEquipped";
+
+export interface GameEventPayload {
+  gameStart: { gameSlug: string };
+  gameEnd: { gameSlug: string; score?: number; extra?: Record<string, number | string>; survivalTimeMs?: number; winner?: string };
+  scoreUpdate: { gameSlug: string; score: number; extra?: Record<string, number | string> };
+  newRecord: { gameSlug: string; kind: string; value: number | string };
+  levelUp: { level: number };
+  itemPurchased: { itemId: string; price: number };
+  itemEquipped: { itemId: string; slot: EquipSlot };
 }

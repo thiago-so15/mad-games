@@ -9,7 +9,7 @@ export default function Home() {
           <span className="text-red-500 dark:text-red-400">MAD</span> GAMES
         </h1>
         <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400 sm:text-xl">
-          Arcade moderno. Jugá, sumá XP, desbloqueá logros.
+          Arcade moderno. Jugá, sumá XP, desbloqueá logros y niveles.
         </p>
       </div>
 
@@ -31,7 +31,7 @@ export default function Home() {
       </div>
 
       <p className="mt-8 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
-        Todo se guarda en tu dispositivo. Sin cuenta, sin servidor. Solo juegos.
+        Modo invitado siempre activo. Todo se guarda en tu dispositivo. Sin cuenta, sin servidor.
       </p>
     </div>
   );

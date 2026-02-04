@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore, getXpToNextLevel } from "@/lib/store";
+import { getShopItemById } from "@/lib/shop";
 
 const links = [
   { href: "/", label: "Inicio" },
   { href: "/games", label: "Juegos" },
+  { href: "/shop", label: "Tienda" },
   { href: "/profile", label: "Perfil" },
   { href: "/settings", label: "Ajustes" },
 ];
@@ -14,8 +16,34 @@ const links = [
 export function Nav() {
   const pathname = usePathname();
   const profile = useStore((s) => s.profile);
+  const inventory = useStore((s) => s.inventory);
+  const wallet = useStore((s) => s.wallet);
   const totalXp = useStore((s) => s.progression.totalXp);
   const { level } = getXpToNextLevel(totalXp);
+
+  const equippedAvatarId = inventory?.equipped?.avatar ?? null;
+  const equippedBorderId = inventory?.equipped?.border ?? null;
+  const equippedTitleId = inventory?.equipped?.title ?? null;
+  const equippedBadgeId = inventory?.equipped?.badge ?? null;
+  const displayAvatar = equippedAvatarId
+    ? (getShopItemById(equippedAvatarId)?.value ?? profile.avatar)
+    : profile.avatar;
+  const displayTitle = equippedTitleId ? getShopItemById(equippedTitleId)?.value : null;
+  const displayBadge = equippedBadgeId ? getShopItemById(equippedBadgeId)?.value : null;
+  const borderValue = equippedBorderId ? getShopItemById(equippedBorderId)?.value : null;
+  const borderClass =
+    borderValue === "gold"
+      ? "border-amber-400 bg-amber-500/20 dark:border-amber-400/70"
+      : borderValue === "emerald"
+        ? "border-emerald-400/70 bg-emerald-500/10 dark:border-emerald-400/50"
+        : borderValue === "amber"
+          ? "border-amber-400/70 bg-amber-500/10 dark:border-amber-500/30"
+          : borderValue === "red"
+            ? "border-red-400/60 bg-red-500/10 dark:border-red-500/50"
+            : level >= 3
+              ? "border-red-400/60 bg-red-500/10 dark:border-red-500/50 dark:bg-red-500/10"
+              : "border-zinc-300 bg-zinc-200/80 dark:border-zinc-600 dark:bg-zinc-800/80";
+  const madCoins = wallet?.madCoins ?? 0;
 
   const isInGame = pathname.startsWith("/games/") && pathname !== "/games";
 
@@ -51,10 +79,21 @@ export function Nav() {
               </li>
             );
           })}
-          <li className="ml-2 flex items-center gap-1.5 rounded-full border border-zinc-300 bg-zinc-200/80 px-2.5 py-1 dark:border-zinc-600 dark:bg-zinc-800/80">
-            <span className="text-lg" aria-hidden>{profile.avatar}</span>
-            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Nv.{level}
+          <Link
+            href="/shop"
+            className="ml-2 flex items-center gap-1.5 rounded-full border border-amber-400/50 bg-amber-500/10 px-2.5 py-1 text-sm font-medium text-amber-700 transition-arcade hover:bg-amber-500/20 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
+          >
+            <span aria-hidden>🪙</span>
+            <span>{madCoins}</span>
+          </Link>
+          <li className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-arcade ${borderClass}`}>
+            <span className="text-lg" aria-hidden>{displayAvatar}</span>
+            <span className="flex items-center gap-1">
+              {displayBadge && <span className="text-xs" aria-hidden>{displayBadge}</span>}
+              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Nv.{level}
+                {displayTitle ? ` · ${displayTitle}` : ""}
+              </span>
             </span>
           </li>
         </ul>

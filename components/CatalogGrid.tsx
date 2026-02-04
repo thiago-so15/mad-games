@@ -49,6 +49,23 @@ function getGamesPlayed(slug: string, store: ReturnType<typeof useStore.getState
   return 0;
 }
 
+/** True si el juego tiene al menos un récord personal (mejor score o tiempo) */
+function hasPersonalRecord(
+  slug: string,
+  snakeStats: { bestScoreByMode: Record<string, number> },
+  pongStats: { bestStreak: number; bestSurvivalTimeMs: number },
+  breakoutStats: { bestScoreByMode: Record<string, number>; maxLevelReached: number },
+  dodgeStats: { bestSurvivalTimeMs: number } | undefined,
+  reactorStats: { bestPulsesSurvived: number } | undefined
+): boolean {
+  if (slug === "snake") return Math.max(0, ...Object.values(snakeStats.bestScoreByMode)) > 0;
+  if (slug === "pong") return pongStats.bestStreak > 0 || pongStats.bestSurvivalTimeMs > 0;
+  if (slug === "breakout") return Math.max(0, ...Object.values(breakoutStats.bestScoreByMode)) > 0 || breakoutStats.maxLevelReached > 0;
+  if (slug === "dodge") return (dodgeStats?.bestSurvivalTimeMs ?? 0) > 0;
+  if (slug === "reactor") return (reactorStats?.bestPulsesSurvived ?? 0) > 0;
+  return false;
+}
+
 const CATEGORIES = ["todos", "arcade", "clásico", "habilidad"] as const;
 const DIFFICULTIES = ["todas", 1, 2, 3] as const;
 
@@ -128,9 +145,17 @@ export function CatalogGrid() {
           const isLastPlayed = lastPlayed === game.slug;
           const gamesPlayed = getGamesPlayed(game.slug, getState());
           const isNew = gamesPlayed === 0;
+          const hasRecord = hasPersonalRecord(
+            game.slug,
+            snakeStats,
+            pongStats,
+            breakoutStats,
+            dodgeStats,
+            reactorStats
+          );
 
           return (
-            <li key={game.slug} className="relative">
+            <li key={game.slug} className="relative animate-[fade-in_0.3s_ease-out]">
               <Link
                 href={game.available ? `/games/${game.slug}` : "#"}
                 className={`block rounded-xl border p-6 transition-arcade hover-lift ${
@@ -162,12 +187,17 @@ export function CatalogGrid() {
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {isLastPlayed && (
                     <span className="rounded bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-600 dark:text-red-400">
-                      Último
+                      Última sesión
                     </span>
                   )}
                   {isNew && game.available && (
                     <span className="rounded bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
                       Nuevo
+                    </span>
+                  )}
+                  {hasRecord && !isNew && (
+                    <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                      Récord
                     </span>
                   )}
                 </div>

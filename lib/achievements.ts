@@ -18,17 +18,17 @@ export interface StoreStateForAchievements {
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: "first_game_over", icon: "💀", name: "Primer Game Over", description: "Perdiste tu primera partida", gameSlug: null },
-  { id: "games_10", icon: "🎯", name: "En marcha", description: "10 partidas jugadas", gameSlug: null },
-  { id: "games_100", icon: "🔥", name: "Centenario", description: "100 partidas jugadas", gameSlug: null },
-  { id: "records_5", icon: "🏆", name: "Récords personales", description: "Superaste 5 récords personales (en total)", gameSlug: null },
-  { id: "level_5", icon: "⬆️", name: "Nivel 5", description: "Alcanzaste el nivel 5 global", gameSlug: null },
-  { id: "level_10", icon: "🌟", name: "Nivel 10", description: "Alcanzaste el nivel 10 global", gameSlug: null },
-  { id: "snake_first", icon: "🐍", name: "Primera serpiente", description: "Jugaste tu primera partida de Snake", gameSlug: "snake" },
-  { id: "pong_first", icon: "🏓", name: "Primer saque", description: "Jugaste tu primera partida de Pong", gameSlug: "pong" },
-  { id: "breakout_first", icon: "🧱", name: "Primer bloque", description: "Jugaste tu primera partida de Breakout", gameSlug: "breakout" },
-  { id: "dodge_first", icon: "🕹️", name: "Primer esquive", description: "Jugaste tu primera partida de Dodge Madness", gameSlug: "dodge" },
-  { id: "reactor_first", icon: "⚡", name: "Primer pulso", description: "Jugaste tu primera partida de Reactor Break", gameSlug: "reactor" },
+  { id: "first_game_over", icon: "💀", name: "Primer Game Over", description: "Perdiste tu primera partida", gameSlug: null, rarity: "common" },
+  { id: "games_10", icon: "🎯", name: "En marcha", description: "10 partidas jugadas", gameSlug: null, rarity: "rare" },
+  { id: "games_100", icon: "🔥", name: "Centenario", description: "100 partidas jugadas", gameSlug: null, rarity: "legendary" },
+  { id: "records_5", icon: "🏆", name: "Récords personales", description: "Superaste 5 récords personales (en total)", gameSlug: null, rarity: "legendary" },
+  { id: "level_5", icon: "⬆️", name: "Nivel 5", description: "Alcanzaste el nivel 5 global", gameSlug: null, rarity: "rare" },
+  { id: "level_10", icon: "🌟", name: "Nivel 10", description: "Alcanzaste el nivel 10 global", gameSlug: null, rarity: "legendary" },
+  { id: "snake_first", icon: "🐍", name: "Primera serpiente", description: "Jugaste tu primera partida de Snake", gameSlug: "snake", rarity: "common" },
+  { id: "pong_first", icon: "🏓", name: "Primer saque", description: "Jugaste tu primera partida de Pong", gameSlug: "pong", rarity: "common" },
+  { id: "breakout_first", icon: "🧱", name: "Primer bloque", description: "Jugaste tu primera partida de Breakout", gameSlug: "breakout", rarity: "common" },
+  { id: "dodge_first", icon: "🕹️", name: "Primer esquive", description: "Jugaste tu primera partida de Dodge Madness", gameSlug: "dodge", rarity: "common" },
+  { id: "reactor_first", icon: "⚡", name: "Primer pulso", description: "Jugaste tu primera partida de Reactor Break", gameSlug: "reactor", rarity: "common" },
 ];
 
 /** Cuenta total de récords personales superados (estimado por juegos con bestScore/bestTime) */

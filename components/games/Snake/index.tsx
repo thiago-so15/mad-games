@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { platform } from "@/lib/platform-events";
 import { useVisibilityPause } from "@/lib/useVisibilityPause";
 import { useSnakeGame } from "@/lib/games/snake/useSnakeGame";
 import type { GameMode } from "@/lib/games/snake/types";
@@ -43,6 +44,7 @@ export function SnakeGame({ slug }: SnakeGameProps) {
 
   const handlePlay = useCallback(() => {
     recordedGameOverRef.current = false;
+    platform.emit("gameStart", { gameSlug: slug });
     setLastPlayedGame(slug);
     setScreen("playing");
     start();

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { platform } from "@/lib/platform-events";
 import { useBreakoutGame } from "@/lib/games/breakout/useBreakoutGame";
 import type { GameMode } from "@/lib/games/breakout/types";
 import { StartScreen } from "./StartScreen";
@@ -30,6 +31,7 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
 
   const handlePlay = useCallback(() => {
     recordedRef.current = false;
+    platform.emit("gameStart", { gameSlug: slug });
     setLastPlayedGame(slug);
     setScreen("playing");
     start(0);

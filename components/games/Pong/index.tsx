@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { platform } from "@/lib/platform-events";
 import { usePongGame } from "@/lib/games/pong/usePongGame";
 import type { GameMode, AiDifficulty } from "@/lib/games/pong/types";
 import { StartScreen } from "./StartScreen";
@@ -50,6 +51,7 @@ export function PongGame({ slug }: PongGameProps) {
   const handlePlay = useCallback(() => {
     recordedResultRef.current = false;
     gameStartTimeRef.current = Date.now();
+    platform.emit("gameStart", { gameSlug: slug });
     setLastPlayedGame(slug);
     setScreen("playing");
     start();

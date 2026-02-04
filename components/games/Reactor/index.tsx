@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { platform } from "@/lib/platform-events";
 import { useReactorGame } from "@/lib/games/reactor/useReactorGame";
 import { StartScreen } from "./StartScreen";
 import { GameScreen } from "./GameScreen";
@@ -30,6 +31,7 @@ export function ReactorGame({ slug }: ReactorGameProps) {
   const handlePlay = useCallback(() => {
     recordedRef.current = false;
     gameStartTimeRef.current = Date.now();
+    platform.emit("gameStart", { gameSlug: slug });
     setLastPlayedGame(slug);
     setScreen("playing");
     start();

@@ -3,7 +3,10 @@
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { getGameBySlug } from "@/lib/games";
+import { LEVEL_UNLOCKS } from "@/lib/types";
 import Link from "next/link";
+
+const AVATAR_PRESETS = ["🎮", "🐍", "🏓", "🧱", "🕹️", "⚡", "🌟", "🔥", "👤", "🎯"];
 
 function formatTime(ms: number): string {
   if (ms < 60000) return "0 min";
@@ -26,9 +29,13 @@ export default function ProfilePage() {
   const reactorStats = useStore((s) => s.reactorStats);
   const totalXp = useStore((s) => s.progression.totalXp);
   const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
+  const wallet = useStore((s) => s.wallet);
+  const inventory = useStore((s) => s.inventory);
   const unlockedIds = unlockedAchievementIds ?? [];
   const favorites = profile.favoriteGameSlugs ?? [];
   const lastPlayedSlug = profile.lastPlayedGameSlug ?? null;
+  const madCoins = wallet?.madCoins ?? 0;
+  const purchasedCount = inventory?.purchasedItemIds?.length ?? 0;
 
   const { level, xpInLevel, xpNeeded } = getXpToNextLevel(totalXp);
   const progressPct = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
@@ -58,6 +65,20 @@ export default function ProfilePage() {
         Todo se guarda en este dispositivo. Sin cuenta.
       </p>
 
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <Link
+          href="/shop"
+          className="rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-500/20 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
+        >
+          🪙 {madCoins} MAD Coins
+        </Link>
+        {purchasedCount > 0 && (
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            {purchasedCount} ítem{purchasedCount !== 1 ? "s" : ""} en inventario
+          </span>
+        )}
+      </div>
+
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Identidad</h2>
         <div className="mt-4 flex flex-wrap items-end gap-6">
@@ -75,16 +96,32 @@ export default function ProfilePage() {
             />
           </div>
           <div>
-            <label htmlFor="avatar" className="block text-sm text-zinc-500 dark:text-zinc-400">
-              Avatar (emoji)
-            </label>
+            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Avatar</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {AVATAR_PRESETS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setProfile({ avatar: emoji })}
+                  className={`rounded-lg border-2 p-2 text-2xl transition-arcade ${
+                    profile.avatar === emoji
+                      ? "border-red-500 bg-red-500/15 dark:border-red-400 dark:bg-red-500/20"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+                  }`}
+                  title={`Usar ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
             <input
               id="avatar"
               type="text"
               value={profile.avatar}
               onChange={(e) => setProfile({ avatar: e.target.value || "🎮" })}
-              className="mt-1 w-20 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-center text-2xl dark:border-zinc-600 dark:bg-zinc-800"
+              className="mt-2 w-20 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-center text-2xl dark:border-zinc-600 dark:bg-zinc-800"
               maxLength={2}
+              placeholder="O emoji libre"
             />
           </div>
         </div>
@@ -147,6 +184,38 @@ export default function ProfilePage() {
       </section>
 
       <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Desbloqueos por nivel</h2>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          Los niveles no bloquean contenido; desbloquean bordes, títulos y badges.
+        </p>
+        <ul className="mt-4 space-y-2">
+          {Object.entries(LEVEL_UNLOCKS)
+            .map(([lvl, data]) => ({ unlockLevel: Number(lvl), ...data }))
+            .sort((a, b) => a.unlockLevel - b.unlockLevel)
+            .map(({ unlockLevel, title, border, badge }) => {
+              const unlocked = unlockLevel <= level;
+              return (
+                <li
+                  key={unlockLevel}
+                  className={`flex items-center gap-3 rounded-lg border px-3 py-2 ${
+                    unlocked
+                      ? "border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/50"
+                      : "border-zinc-100 opacity-60 dark:border-zinc-800"
+                  }`}
+                >
+                  <span className="w-8 text-sm font-bold text-zinc-500 dark:text-zinc-400">Nv.{unlockLevel}</span>
+                  {badge && <span className="text-amber-600 dark:text-amber-400">{badge}</span>}
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300">{title}</span>
+                  {border && (
+                    <span className="ml-auto text-[10px] uppercase text-zinc-400 dark:text-zinc-500">Borde</span>
+                  )}
+                </li>
+              );
+            })}
+        </ul>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Estadísticas globales</h2>
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div className="rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/50">
@@ -172,21 +241,33 @@ export default function ProfilePage() {
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {ACHIEVEMENTS.map((a) => {
             const unlocked = unlockedIds.includes(a.id);
+            const rarity = a.rarity ?? "common";
+            const rarityStyles = {
+              common: "border-zinc-200 dark:border-zinc-700",
+              rare: "border-amber-400/50 dark:border-amber-500/50",
+              legendary: "border-amber-500/70 dark:border-amber-400/70 shadow-[0_0_12px_rgba(245,158,11,0.15)]",
+            };
+            const rarityLabel = { common: "Común", rare: "Raro", legendary: "Legendario" };
             return (
               <li
                 key={a.id}
-                className={`flex items-center gap-3 rounded-xl border p-3 ${
+                className={`flex items-center gap-3 rounded-xl border p-3 transition-arcade ${
                   unlocked
-                    ? "border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/50"
+                    ? `bg-zinc-50 dark:bg-zinc-800/50 ${rarityStyles[rarity]}`
                     : "border-zinc-100 bg-zinc-50/50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900/30"
                 }`}
               >
                 <span className="text-2xl" role="img" aria-hidden>
                   {a.icon}
                 </span>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-zinc-900 dark:text-white">{a.name}</p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{a.description}</p>
+                  {unlocked && (
+                    <span className="mt-0.5 inline-block text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      {rarityLabel[rarity]}
+                    </span>
+                  )}
                 </div>
               </li>
             );

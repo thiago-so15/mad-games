@@ -25,6 +25,7 @@ export default function SettingsPage() {
         theme: "dark",
         controlScheme: "keyboard",
         visualEffects: "high",
+        lowPerformanceMode: false,
         snakeSpeedMultiplier: 1,
         pongSpeedMultiplier: 1,
         breakoutSpeedMultiplier: 1,
@@ -38,6 +39,11 @@ export default function SettingsPage() {
       reactorStats: { bestPulsesSurvived: 0, bestCombo: 0, gamesPlayed: 0, totalTimeMs: 0 },
       progression: { totalXp: 0 },
       unlockedAchievementIds: [],
+      wallet: { madCoins: 0 },
+      inventory: {
+        purchasedItemIds: [],
+        equipped: { avatar: null, border: null, title: null, badge: null, theme: null },
+      },
     });
   };
 
@@ -110,16 +116,17 @@ export default function SettingsPage() {
       </section>
 
       <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Juegos</h2>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Sonido y controles</h2>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Aplica a toda la plataforma.</p>
         <div className="mt-4 space-y-4">
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
               checked={settings.soundEnabled}
               onChange={(e) => setSettings({ soundEnabled: e.target.checked })}
-              className="rounded border-zinc-400 text-amber-500 focus:ring-amber-500 dark:border-zinc-500 dark:bg-zinc-700"
+              className="rounded border-zinc-400 text-red-500 focus:ring-red-500 dark:border-zinc-500 dark:bg-zinc-700"
             />
-            <span className="text-sm text-zinc-700 dark:text-zinc-300">Sonido</span>
+            <span className="text-sm text-zinc-700 dark:text-zinc-300">Sonido master</span>
           </label>
           <div>
             <label className="block text-sm text-zinc-500 dark:text-zinc-400">Esquema de controles</label>
@@ -169,6 +176,18 @@ export default function SettingsPage() {
                 <option value={1.15}>Más rápido</option>
               </select>
             </div>
+          </div>
+          <div>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={settings.lowPerformanceMode ?? false}
+                onChange={(e) => setSettings({ lowPerformanceMode: e.target.checked })}
+                className="rounded border-zinc-400 text-red-500 focus:ring-red-500 dark:border-zinc-500 dark:bg-zinc-700"
+              />
+              <span className="text-sm text-zinc-700 dark:text-zinc-300">Modo bajo rendimiento</span>
+            </label>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Menos animaciones y efectos para dispositivos lentos.</p>
           </div>
         </div>
       </section>

@@ -39,6 +39,8 @@ export interface GameSettings {
   soundEnabled: boolean;
   /** Multiplicador de velocidad en Snake (1 = normal, >1 = más lento) */
   snakeSpeedMultiplier: number;
+  /** Multiplicador de velocidad en Pong (1 = normal) */
+  pongSpeedMultiplier: number;
 }
 
 /** Estadísticas por juego (mejor score por modo, partidas, tiempo) */
@@ -46,4 +48,14 @@ export interface SnakeStats {
   bestScoreByMode: Partial<Record<"classic" | "timeAttack" | "hardcore", number>>;
   gamesPlayed: number;
   totalTimeMs: number;
+}
+
+/** Estadísticas Pong (partidas, victorias, derrotas, racha, survival) */
+export interface PongStats {
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  currentStreak: number;
+  bestStreak: number;
+  bestSurvivalTimeMs: number;
 }

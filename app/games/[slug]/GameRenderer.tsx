@@ -1,9 +1,11 @@
 "use client";
 
 import { SnakeGame } from "@/components/games/Snake";
+import { PongGame } from "@/components/games/Pong";
 
 const GAME_COMPONENTS: Record<string, React.ComponentType<object>> = {
   snake: SnakeGame,
+  pong: PongGame,
 };
 
 interface GameRendererProps {

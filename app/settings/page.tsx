@@ -18,8 +18,9 @@ export default function SettingsPage() {
         updatedAt: Date.now(),
       },
       scores: [],
-      settings: { soundEnabled: true, snakeSpeedMultiplier: 1 },
+      settings: { soundEnabled: true, snakeSpeedMultiplier: 1, pongSpeedMultiplier: 1 },
       snakeStats: { bestScoreByMode: {}, gamesPlayed: 0, totalTimeMs: 0 },
+      pongStats: { gamesPlayed: 0, wins: 0, losses: 0, currentStreak: 0, bestStreak: 0, bestSurvivalTimeMs: 0 },
     });
   };
 
@@ -43,11 +44,11 @@ export default function SettingsPage() {
             <span className="text-sm text-zinc-300">Sonido</span>
           </label>
           <div>
-            <label htmlFor="speed" className="block text-sm text-zinc-400">
-              Velocidad base (Snake)
+            <label htmlFor="snake-speed" className="block text-sm text-zinc-400">
+              Velocidad Snake
             </label>
             <select
-              id="speed"
+              id="snake-speed"
               value={settings.snakeSpeedMultiplier}
               onChange={(e) => setSettings({ snakeSpeedMultiplier: Number(e.target.value) })}
               className="mt-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-amber-500 focus:outline-none"
@@ -55,6 +56,21 @@ export default function SettingsPage() {
               <option value={0.75}>Más rápido</option>
               <option value={1}>Normal</option>
               <option value={1.25}>Más lento</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="pong-speed" className="block text-sm text-zinc-400">
+              Velocidad Pong
+            </label>
+            <select
+              id="pong-speed"
+              value={settings.pongSpeedMultiplier}
+              onChange={(e) => setSettings({ pongSpeedMultiplier: Number(e.target.value) })}
+              className="mt-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-amber-500 focus:outline-none"
+            >
+              <option value={0.8}>Más lento</option>
+              <option value={1}>Normal</option>
+              <option value={1.2}>Más rápido</option>
             </select>
           </div>
         </div>

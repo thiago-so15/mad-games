@@ -10,6 +10,8 @@ export default function ProfilePage() {
   const getScoresByGame = useStore((s) => s.getScoresByGame);
 
   const snakeScores = getScoresByGame("snake").slice(0, 10);
+  const pongScores = getScoresByGame("pong").slice(0, 10);
+  const pongStats = useStore((s) => s.pongStats);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -64,21 +66,45 @@ export default function ProfilePage() {
             y guardá tu puntaje al terminar.
           </p>
         ) : (
-          <ul className="mt-4 space-y-3">
-            <li className="text-sm font-medium text-zinc-400">Snake</li>
-            {snakeScores.map((s, i) => (
-              <li
-                key={s.playedAt}
-                className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2"
-              >
-                <span className="text-zinc-300">
-                  #{i + 1} — {s.score} pts
-                </span>
-                <span className="text-xs text-zinc-500">
-                  {new Date(s.playedAt).toLocaleDateString("es-AR")}
-                </span>
-              </li>
-            ))}
+          <ul className="mt-4 space-y-4">
+            <li>
+              <span className="text-sm font-medium text-zinc-400">Snake</span>
+              {snakeScores.map((s, i) => (
+                <li
+                  key={`snake-${s.playedAt}`}
+                  className="mt-1 flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2"
+                >
+                  <span className="text-zinc-300">#{i + 1} — {s.score} pts</span>
+                  <span className="text-xs text-zinc-500">
+                    {new Date(s.playedAt).toLocaleDateString("es-AR")}
+                  </span>
+                </li>
+              ))}
+            </li>
+            <li>
+              <span className="text-sm font-medium text-zinc-400">Pong</span>
+              {pongStats.gamesPlayed > 0 && (
+                <p className="mt-1 text-xs text-zinc-500">
+                  {pongStats.wins} victorias · {pongStats.losses} derrotas · Mejor racha: {pongStats.bestStreak}
+                  {pongStats.bestSurvivalTimeMs > 0 && (
+                    <> · Survival: {Math.floor(pongStats.bestSurvivalTimeMs / 1000)}s</>
+                  )}
+                </p>
+              )}
+              {pongScores.map((s, i) => (
+                <li
+                  key={`pong-${s.playedAt}`}
+                  className="mt-1 flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-2"
+                >
+                  <span className="text-zinc-300">
+                    #{i + 1} — {s.score}–{s.extra?.scoreRight ?? "?"}
+                  </span>
+                  <span className="text-xs text-zinc-500">
+                    {new Date(s.playedAt).toLocaleDateString("es-AR")}
+                  </span>
+                </li>
+              ))}
+            </li>
           </ul>
         )}
       </section>

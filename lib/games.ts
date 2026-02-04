@@ -12,8 +12,13 @@ export const GAMES_CATALOG: GameMeta[] = [
     icon: "🐍",
     available: true,
   },
-  // Ejemplos para el catálogo (available: false hasta implementarlos)
-  // { slug: "memory", name: "Memory", description: "Encontrá los pares.", icon: "🧠", available: false },
+  {
+    slug: "pong",
+    name: "Ping Pong v2",
+    description: "Classic con power-ups, Vs AI, 2 jugadores o Survival. Palas dinámicas y rebotes.",
+    icon: "🏓",
+    available: true,
+  },
 ];
 
 export function getGameBySlug(slug: string): GameMeta | undefined {

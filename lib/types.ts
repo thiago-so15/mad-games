@@ -26,6 +26,9 @@ export type ShopItemType =
   | "title"
   | "badge"
   | "theme"
+  | "cursor"
+  | "soundPack"
+  | "screenEffect"
   | "ui"
   | "effect"
   | "gameSkin";
@@ -50,7 +53,7 @@ export interface ShopItem {
 }
 
 /** Slots de equipamiento (uno por tipo aplicable) */
-export type EquipSlot = "avatar" | "border" | "title" | "badge" | "theme";
+export type EquipSlot = "avatar" | "border" | "title" | "badge" | "theme" | "cursor" | "soundPack" | "screenEffect";
 
 export interface EquippedItems {
   avatar: string | null;   // itemId o null = usar profile.avatar
@@ -58,6 +61,9 @@ export interface EquippedItems {
   title: string | null;
   badge: string | null;
   theme: string | null;   // itemId o null = usar settings.theme
+  cursor: string | null;  // cursor cosmético
+  soundPack: string | null; // pack de sonidos UI
+  screenEffect: string | null; // efectos visuales (shake, flash, etc.)
 }
 
 export interface Inventory {

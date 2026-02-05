@@ -33,7 +33,7 @@ export default function ShopPage() {
   const { level } = getXpToNextLevel(totalXp);
   const madCoins = wallet?.madCoins ?? 0;
   const purchased = inventory?.purchasedItemIds ?? [];
-  const equipped: EquippedItems = inventory?.equipped ?? { avatar: null, border: null, title: null, badge: null, theme: null };
+  const equipped: EquippedItems = inventory?.equipped ?? { avatar: null, border: null, title: null, badge: null, theme: null, cursor: null, soundPack: null, screenEffect: null };
 
   const items = SHOP_ITEMS.filter((i) => i.category === category);
 

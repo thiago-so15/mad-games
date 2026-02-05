@@ -139,6 +139,9 @@ const defaultInventory: Inventory = {
     title: null,
     badge: null,
     theme: null,
+    cursor: null,
+    soundPack: null,
+    screenEffect: null,
   },
 };
 

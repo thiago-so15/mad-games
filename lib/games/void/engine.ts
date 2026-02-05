@@ -19,6 +19,22 @@ function getMarginAt(elapsedSec: number): number {
   return Math.max(MIN_MARGIN, INITIAL_MARGIN - shrink);
 }
 
+export function createIdleState(): VoidGameState {
+  const cx = CANVAS_WIDTH / 2;
+  const cy = CANVAS_HEIGHT / 2;
+  return {
+    x: cx,
+    y: cy,
+    vx: 0,
+    vy: 0,
+    gameStartTime: 0,
+    lastUpdateAt: 0,
+    phase: "idle",
+    paused: false,
+    survivalTimeMs: 0,
+  };
+}
+
 export function createInitialState(): VoidGameState {
   const now = Date.now();
   const cx = CANVAS_WIDTH / 2;
@@ -49,7 +65,8 @@ export function tick(state: VoidGameState, now: number): VoidGameState {
   if (state.phase !== "playing" || state.paused) return state;
 
   const dtMs = now - state.lastUpdateAt;
-  const dtSec = dtMs / 1000;
+  // Limitar delta time para evitar saltos enormes (max 100ms)
+  const dtSec = Math.min(dtMs / 1000, 0.1);
   const elapsedSec = (now - state.gameStartTime) / 1000;
   const margin = getMarginAt(elapsedSec);
 

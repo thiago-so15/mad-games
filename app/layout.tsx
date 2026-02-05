@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { StoreHydration } from "@/components/StoreHydration";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CursorProvider } from "@/components/CursorProvider";
 import { UnlockReveal } from "@/components/UnlockReveal";
 import { UnlockMessage } from "@/components/UnlockMessage";
 import { SessionReset } from "@/components/SessionReset";
@@ -35,6 +36,7 @@ export default function RootLayout({
       >
         <StoreHydration />
         <ThemeProvider />
+        <CursorProvider />
         <SessionReset />
         <UnlockReveal />
         <UnlockMessage />

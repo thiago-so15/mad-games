@@ -16,7 +16,7 @@ export function StartScreen({ onPlay }: StartScreenProps) {
         onClick={onPlay}
         className="rounded-lg border border-zinc-600 bg-zinc-800 px-8 py-3 font-medium text-zinc-200 transition hover:bg-zinc-700 hover:border-zinc-500 active:scale-[0.98]"
       >
-        Entrar
+        Jugar
       </button>
       <p className="text-xs text-zinc-600">
         Espacio o clic = invertir dirección · P = pausa

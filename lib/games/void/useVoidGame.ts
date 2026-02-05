@@ -6,13 +6,14 @@ import {
   reverseDirection as engineReverse,
   togglePause as engineTogglePause,
   createInitialState,
+  createIdleState,
 } from "./engine";
 import type { VoidGameState } from "./types";
 
 const VOID_KEYS = new Set([" ", "Enter", "x", "X", "c", "C", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
 export function useVoidGame() {
-  const [state, setState] = useState<VoidGameState>(() => createInitialState());
+  const [state, setState] = useState<VoidGameState>(() => createIdleState());
   const stateRef = useRef<VoidGameState>(state);
   stateRef.current = state;
   const rafRef = useRef(0);

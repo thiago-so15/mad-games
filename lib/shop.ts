@@ -35,6 +35,19 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "theme-forest", category: "platform", type: "theme", name: "Bosque", description: "Tema verde oscuro", price: 40, value: "forest", icon: "🌲" },
   { id: "theme-sunset", category: "platform", type: "theme", name: "Atardecer", description: "Tema naranja suave", price: 50, value: "sunset", icon: "🌅" },
   { id: "theme-neon", category: "platform", type: "theme", name: "Neón", description: "Tema neón arcade", price: 80, value: "neon", icon: "✨", minLevel: 3 },
+  // —— Plataforma: Cursores ——
+  { id: "cursor-crosshair", category: "platform", type: "cursor", name: "Mira", description: "Cursor estilo mira de precisión", price: 25, value: "crosshair", icon: "🎯" },
+  { id: "cursor-pointer", category: "platform", type: "cursor", name: "Mano", description: "Cursor mano retro", price: 20, value: "pointer", icon: "👆" },
+  { id: "cursor-cell", category: "platform", type: "cursor", name: "Celda", description: "Cursor estilo pixelado", price: 30, value: "cell", icon: "⊞" },
+  { id: "cursor-glow", category: "platform", type: "cursor", name: "Brillo", description: "Cursor con glow neón", price: 60, value: "glow", icon: "✨", minLevel: 2 },
+  // —— Plataforma: Sonidos UI ——
+  { id: "sound-arcade", category: "platform", type: "soundPack", name: "Arcade Clásico", description: "Sonidos 8-bit retro", price: 35, value: "arcade", icon: "🔊" },
+  { id: "sound-minimal", category: "platform", type: "soundPack", name: "Minimal", description: "Sonidos suaves y sutiles", price: 30, value: "minimal", icon: "🔈" },
+  { id: "sound-synth", category: "platform", type: "soundPack", name: "Synth", description: "Sonidos electrónicos modernos", price: 45, value: "synth", icon: "🎹", minLevel: 2 },
+  // —— Plataforma: Efectos de pantalla ——
+  { id: "effect-shake", category: "platform", type: "screenEffect", name: "Screen Shake", description: "Sacudida suave en impactos", price: 40, value: "shake", icon: "📳" },
+  { id: "effect-flash", category: "platform", type: "screenEffect", name: "Flash", description: "Destello al marcar puntos", price: 35, value: "flash", icon: "⚡" },
+  { id: "effect-glow", category: "platform", type: "screenEffect", name: "Glow Pulse", description: "Pulso de brillo en eventos", price: 50, value: "glow", icon: "💫", minLevel: 2 },
 ];
 
 export function getShopItemById(id: string): ShopItem | undefined {
@@ -52,6 +65,9 @@ export function getEquipSlotForItemType(type: ShopItem["type"]): EquipSlot | nul
     title: "title",
     badge: "badge",
     theme: "theme",
+    cursor: "cursor",
+    soundPack: "soundPack",
+    screenEffect: "screenEffect",
     ui: null,
     effect: null,
     gameSkin: null,

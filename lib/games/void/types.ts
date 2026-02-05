@@ -9,7 +9,7 @@ export interface VoidGameState {
   vy: number;
   gameStartTime: number;
   lastUpdateAt: number;
-  phase: "playing" | "gameOver";
+  phase: "idle" | "playing" | "gameOver";
   paused: boolean;
   /** Tiempo sobrevivido en ms (score) */
   survivalTimeMs: number;

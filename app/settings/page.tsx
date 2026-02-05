@@ -58,7 +58,7 @@ export default function SettingsPage() {
       wallet: { madCoins: 0 },
       inventory: {
         purchasedItemIds: [],
-        equipped: { avatar: null, border: null, title: null, badge: null, theme: null },
+        equipped: { avatar: null, border: null, title: null, badge: null, theme: null, cursor: null, soundPack: null, screenEffect: null },
       },
     });
   };

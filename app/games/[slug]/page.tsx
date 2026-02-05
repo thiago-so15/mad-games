@@ -18,9 +18,12 @@ export default async function GamePage({ params }: PageProps) {
         <span className="text-3xl" role="img" aria-hidden>
           {game.icon ?? "🎮"}
         </span>
-        <h1 className="text-2xl font-bold text-white">{game.name}</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{game.name}</h1>
       </div>
-      <GameRenderer slug={slug} />
+      {/* Container con tema oscuro forzado para que los juegos siempre tengan buen contraste */}
+      <div className="game-container dark w-full rounded-2xl bg-zinc-900 p-6 text-zinc-100 shadow-xl">
+        <GameRenderer slug={slug} />
+      </div>
     </div>
   );
 }

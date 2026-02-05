@@ -117,11 +117,11 @@ const defaultVoidStats: VoidStats = {
 };
 
 const defaultProgression: Progression = {
-  totalXp: 4900,
+  totalXp: 0,
 };
 
 const defaultWallet: Wallet = {
-  madCoins: 10000,
+  madCoins: 0,
 };
 
 const defaultDailyChallenge: DailyChallengeState = {

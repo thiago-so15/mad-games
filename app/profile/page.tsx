@@ -3,6 +3,7 @@
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { getGameBySlug } from "@/lib/games";
+import { getShopItemById } from "@/lib/shop";
 import { LEVEL_UNLOCKS } from "@/lib/types";
 import Link from "next/link";
 
@@ -36,6 +37,29 @@ export default function ProfilePage() {
   const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
   const wallet = useStore((s) => s.wallet);
   const inventory = useStore((s) => s.inventory);
+  const equipped = inventory?.equipped ?? { avatar: null, border: null, title: null, badge: null, theme: null };
+  const equippedAvatarId = equipped.avatar;
+  const equippedBorderId = equipped.border;
+  const equippedTitleId = equipped.title;
+  const equippedBadgeId = equipped.badge;
+  const displayAvatar = equippedAvatarId
+    ? (getShopItemById(equippedAvatarId)?.value ?? profile.avatar)
+    : profile.avatar;
+  const displayTitle = equippedTitleId ? getShopItemById(equippedTitleId)?.value : null;
+  const displayBadge = equippedBadgeId ? getShopItemById(equippedBadgeId)?.value : null;
+  const borderValue = equippedBorderId ? getShopItemById(equippedBorderId)?.value : null;
+  const borderClass =
+    borderValue === "gold"
+      ? "border-amber-400 bg-amber-500/20 dark:border-amber-400/70"
+      : borderValue === "emerald"
+        ? "border-emerald-400/70 bg-emerald-500/10 dark:border-emerald-400/50"
+        : borderValue === "amber"
+          ? "border-amber-400/70 bg-amber-500/10 dark:border-amber-500/30"
+          : borderValue === "red"
+            ? "border-red-400/60 bg-red-500/10 dark:border-red-500/50"
+            : level >= 3
+              ? "border-red-400/60 bg-red-500/10 dark:border-red-500/50 dark:bg-red-500/10"
+              : "border-zinc-300 bg-zinc-200/80 dark:border-zinc-600 dark:bg-zinc-800/80";
   const unlockedIds = unlockedAchievementIds ?? [];
   const favorites = profile.favoriteGameSlugs ?? [];
   const lastPlayedSlug = profile.lastPlayedGameSlug ?? null;
@@ -86,7 +110,20 @@ export default function ProfilePage() {
 
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Identidad</h2>
-        <div className="mt-4 flex flex-wrap items-end gap-6">
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          Avatares gratuitos y personalización de la tienda (bordes, títulos, badges) se muestran en la barra de navegación.
+        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-arcade ${borderClass}`}>
+            <span className="text-lg" aria-hidden>{displayAvatar}</span>
+            <span className="flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Nv.{level}
+              {displayBadge && <span aria-hidden>{displayBadge}</span>}
+              {displayTitle ? ` · ${displayTitle}` : ""}
+            </span>
+          </span>
+        </div>
+        <div className="mt-6 flex flex-wrap items-end gap-6">
           <div>
             <label htmlFor="nickname" className="block text-sm text-zinc-500 dark:text-zinc-400">
               Nickname

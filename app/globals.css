@@ -21,6 +21,104 @@
   --card-border: #262626;
 }
 
+/* Plataforma: temas comprados en tienda */
+[data-theme="midnight"] {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --muted: #94a3b8;
+  --card: #1e293b;
+  --card-border: #334155;
+}
+[data-theme="midnight"]:not(.dark) {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --muted: #94a3b8;
+  --card: #1e293b;
+  --card-border: #334155;
+}
+
+[data-theme="forest"] {
+  --background: #052e16;
+  --foreground: #dcfce7;
+  --accent: #22c55e;
+  --accent-hover: #4ade80;
+  --muted: #86efac;
+  --card: #14532d;
+  --card-border: #166534;
+}
+[data-theme="forest"]:not(.dark) {
+  --background: #052e16;
+  --foreground: #dcfce7;
+  --accent: #22c55e;
+  --accent-hover: #4ade80;
+  --muted: #86efac;
+  --card: #14532d;
+  --card-border: #166534;
+}
+
+[data-theme="sunset"] {
+  --background: #431407;
+  --foreground: #ffedd5;
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  --muted: #fdba74;
+  --card: #7c2d12;
+  --card-border: #9a3412;
+}
+[data-theme="sunset"]:not(.dark) {
+  --background: #431407;
+  --foreground: #ffedd5;
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  --muted: #fdba74;
+  --card: #7c2d12;
+  --card-border: #9a3412;
+}
+
+[data-theme="neon"] {
+  --background: #0c0a0f;
+  --foreground: #f0e6ff;
+  --accent: #a855f7;
+  --accent-hover: #c084fc;
+  --muted: #c4b5fd;
+  --card: #1a1625;
+  --card-border: #2e2638;
+}
+[data-theme="neon"]:not(.dark) {
+  --background: #0c0a0f;
+  --foreground: #f0e6ff;
+  --accent: #a855f7;
+  --accent-hover: #c084fc;
+  --muted: #c4b5fd;
+  --card: #1a1625;
+  --card-border: #2e2638;
+}
+
+/* Cuando hay tema de plataforma activo: forzar colores del tema sobre Tailwind */
+html[data-theme] {
+  color-scheme: dark;
+}
+html[data-theme] body {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+html[data-theme] nav[role="navigation"] {
+  background-color: var(--card) !important;
+  border-color: var(--card-border) !important;
+}
+html[data-theme] main {
+  color: var(--foreground) !important;
+}
+html[data-theme] [class*="rounded-2xl"][class*="border"],
+html[data-theme] [class*="rounded-xl"][class*="border"] {
+  background-color: var(--card) !important;
+  border-color: var(--card-border) !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

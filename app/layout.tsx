@@ -7,6 +7,7 @@ import { CursorProvider } from "@/components/CursorProvider";
 import { UnlockReveal } from "@/components/UnlockReveal";
 import { UnlockMessage } from "@/components/UnlockMessage";
 import { SessionReset } from "@/components/SessionReset";
+import { EffectsProvider } from "@/components/EffectsProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,12 +39,14 @@ export default function RootLayout({
         <ThemeProvider />
         <CursorProvider />
         <SessionReset />
-        <UnlockReveal />
-        <UnlockMessage />
-        <Nav />
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-          {children}
-        </main>
+        <EffectsProvider>
+          <UnlockReveal />
+          <UnlockMessage />
+          <Nav />
+          <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+            {children}
+          </main>
+        </EffectsProvider>
       </body>
     </html>
   );

@@ -1,12 +1,22 @@
 "use client";
 
-import { useStore } from "@/lib/store";
+import { useStore, getXpToNextLevel } from "@/lib/store";
 
 export default function SettingsPage() {
   const profile = useStore((s) => s.profile);
   const scores = useStore((s) => s.scores);
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+  const progression = useStore((s) => s.progression);
+  const addXp = useStore((s) => s.addXp);
+  const { level } = getXpToNextLevel(progression.totalXp);
+
+  const setLevel = (targetLevel: number) => {
+    // XP at level start = (level-1)² × 100
+    const targetXp = (targetLevel - 1) * (targetLevel - 1) * 100;
+    const diff = targetXp - progression.totalXp;
+    addXp(diff);
+  };
 
   const clearAllData = () => {
     if (typeof window === "undefined") return;
@@ -220,6 +230,36 @@ export default function SettingsPage() {
         >
           Borrar todo el progreso
         </button>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/30">
+        <h2 className="text-lg font-semibold text-amber-900 dark:text-amber-200">Desarrollador</h2>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+          Nivel actual: {level} (XP: {progression.totalXp.toLocaleString()})
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setLevel(1)}
+            className="rounded-lg border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-200 dark:border-amber-800 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900"
+          >
+            Nivel 1
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevel(20)}
+            className="rounded-lg border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-200 dark:border-amber-800 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900"
+          >
+            Nivel 20
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevel(50)}
+            className="rounded-lg border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-200 dark:border-amber-800 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900"
+          >
+            Nivel 50
+          </button>
+        </div>
       </section>
     </div>
   );

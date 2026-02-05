@@ -117,11 +117,11 @@ const defaultVoidStats: VoidStats = {
 };
 
 const defaultProgression: Progression = {
-  totalXp: 0,
+  totalXp: 4900,
 };
 
 const defaultWallet: Wallet = {
-  madCoins: 0,
+  madCoins: 10000,
 };
 
 const defaultDailyChallenge: DailyChallengeState = {
@@ -156,7 +156,7 @@ export const COINS_NEW_RECORD = 10;
 export const COINS_LEVEL_UP = 25;
 
 function xpToLevel(xp: number): number {
-  if (xp <= 0) return 1;
+  if (xp <= 0) return 0;
   return Math.floor(Math.sqrt(xp / 100)) + 1;
 }
 

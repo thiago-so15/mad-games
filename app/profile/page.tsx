@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
   const wallet = useStore((s) => s.wallet);
   const inventory = useStore((s) => s.inventory);
+  const { level, xpInLevel, xpNeeded } = getXpToNextLevel(totalXp);
   const equipped = inventory?.equipped ?? { avatar: null, border: null, title: null, badge: null, theme: null };
   const equippedAvatarId = equipped.avatar;
   const equippedBorderId = equipped.border;
@@ -65,8 +66,6 @@ export default function ProfilePage() {
   const lastPlayedSlug = profile.lastPlayedGameSlug ?? null;
   const madCoins = wallet?.madCoins ?? 0;
   const purchasedCount = inventory?.purchasedItemIds?.length ?? 0;
-
-  const { level, xpInLevel, xpNeeded } = getXpToNextLevel(totalXp);
   const progressPct = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
   const totalGames =
     snakeStats.gamesPlayed +

@@ -6,9 +6,11 @@ interface ResultScreenProps {
   distance: number;
   bestDistance: number;
   onRetry: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
-export function ResultScreen({ distance, bestDistance, onRetry }: ResultScreenProps) {
+export function ResultScreen({ distance, bestDistance, onRetry, backHref = "/games", backLabel = "Volver al catalogo" }: ResultScreenProps) {
   const isNewRecord = distance >= bestDistance && bestDistance > 0;
   return (
     <div className="flex flex-col items-center gap-6 animate-[fade-in_0.3s_ease-out]">
@@ -21,7 +23,7 @@ export function ResultScreen({ distance, bestDistance, onRetry }: ResultScreenPr
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" onClick={onRetry} className="rounded-lg bg-amber-500 px-6 py-2.5 font-semibold text-zinc-900 transition hover:bg-amber-400 active:scale-[0.98]">Reintentar</button>
-        <Link href="/games" className="rounded-lg border border-zinc-600 px-6 py-2.5 font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800">Volver al catálogo</Link>
+        <Link href={backHref} className="rounded-lg border border-zinc-600 px-6 py-2.5 font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800">{backLabel}</Link>
       </div>
     </div>
   );

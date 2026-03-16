@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useVisibilityPause } from "@/lib/useVisibilityPause";
@@ -17,18 +18,27 @@ interface SnakeGameProps {
 }
 
 export function SnakeGame({ slug }: SnakeGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const snakeStats = useStore((s) => s.snakeStats);
   const updateSnakeStats = useStore((s) => s.updateSnakeStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const requestedMode = searchParams.get("mode");
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
+  const initialMode: GameMode =
+    requestedMode === "classic" || requestedMode === "timeAttack" || requestedMode === "hardcore"
+      ? requestedMode
+      : "classic";
 
   const [screen, setScreen] = useState<Screen>("start");
-  const [mode, setMode] = useState<GameMode>("classic");
+  const [mode, setMode] = useState<GameMode>(initialMode);
   const recordedGameOverRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const prevScoreRef = useRef(0);
   const [eatFeedback, setEatFeedback] = useState<string | null>(null);
 
-  const speedMultiplier = settings.snakeSpeedMultiplier;
+  const speedMultiplier = (settings.snakeSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 1.25 : 1);
   const { state, start, togglePause, getTimePlayedMs } = useSnakeGame(mode, speedMultiplier);
 
   useEffect(() => {
@@ -54,6 +64,12 @@ export function SnakeGame({ slug }: SnakeGameProps) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || !state.gameOver || recordedGameOverRef.current) return;
@@ -94,6 +110,8 @@ export function SnakeGame({ slug }: SnakeGameProps) {
         bestScore={bestScore}
         mode={mode}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

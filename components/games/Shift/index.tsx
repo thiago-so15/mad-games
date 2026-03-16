@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useShiftGame } from "@/lib/games/shift/useShiftGame";
@@ -11,15 +12,19 @@ import { ResultScreen } from "./ResultScreen";
 type Screen = "start" | "playing" | "result";
 
 export function ShiftGame({ slug }: { slug: string }) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const shiftStats = useStore((s) => s.shiftStats);
   const updateShiftStats = useStore((s) => s.updateShiftStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
-  const speedMultiplier = settings.shiftSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.shiftSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, togglePause } = useShiftGame(speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -39,6 +44,12 @@ export function ShiftGame({ slug }: { slug: string }) {
   }, [start]);
 
   useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
+
+  useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current) return;
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
@@ -54,7 +65,15 @@ export function ShiftGame({ slug }: { slug: string }) {
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {
     const best = shiftStats?.bestSurvivalTimeMs ?? 0;
-    return <ResultScreen survivalTimeMs={state.survivalTimeMs} bestTimeMs={Math.max(best, state.survivalTimeMs)} onRetry={handleRetry} />;
+    return (
+      <ResultScreen
+        survivalTimeMs={state.survivalTimeMs}
+        bestTimeMs={Math.max(best, state.survivalTimeMs)}
+        onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
+      />
+    );
   }
   return (
     <div className="relative">

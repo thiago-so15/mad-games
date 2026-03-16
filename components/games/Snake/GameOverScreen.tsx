@@ -14,9 +14,11 @@ interface GameOverScreenProps {
   bestScore: number;
   mode: GameMode;
   onRetry: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
-export function GameOverScreen({ score, bestScore, mode, onRetry }: GameOverScreenProps) {
+export function GameOverScreen({ score, bestScore, mode, onRetry, backHref = "/games", backLabel = "Volver al catalogo" }: GameOverScreenProps) {
   const isNewRecord = score > 0 && score >= bestScore && bestScore === score;
 
   return (
@@ -44,10 +46,10 @@ export function GameOverScreen({ score, bestScore, mode, onRetry }: GameOverScre
           Reintentar
         </button>
         <Link
-          href="/games"
+          href={backHref}
           className="rounded-lg border border-zinc-600 px-6 py-2.5 font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800"
         >
-          Volver al catálogo
+          {backLabel}
         </Link>
       </div>
     </div>

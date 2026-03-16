@@ -28,6 +28,8 @@ interface ResultScreenProps {
   /** Survival: mejor tiempo local (ms) */
   bestSurvivalTimeMs?: number;
   onRetry: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
 export function ResultScreen({
@@ -39,6 +41,8 @@ export function ResultScreen({
   survivalTimeMs,
   bestSurvivalTimeMs,
   onRetry,
+  backHref = "/games",
+  backLabel = "Volver al catalogo",
 }: ResultScreenProps) {
   const playerWon = winner === "left" ? isPlayerLeft : !isPlayerLeft;
   const title =
@@ -84,10 +88,10 @@ export function ResultScreen({
           Reintentar
         </button>
         <Link
-          href="/games"
+          href={backHref}
           className="rounded-lg border border-zinc-600 px-6 py-2.5 font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800"
         >
-          Volver al catálogo
+          {backLabel}
         </Link>
       </div>
     </div>

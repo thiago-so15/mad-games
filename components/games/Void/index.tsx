@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useVoidGame } from "@/lib/games/void/useVoidGame";
@@ -11,12 +12,16 @@ import { ResultScreen } from "./ResultScreen";
 type Screen = "start" | "playing" | "result";
 
 export function VoidGame({ slug }: { slug: string }) {
+  const searchParams = useSearchParams();
   const voidStats = useStore((s) => s.voidStats);
   const updateVoidStats = useStore((s) => s.updateVoidStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
   const { state, start, reverseDirection, togglePause } = useVoidGame();
@@ -36,6 +41,12 @@ export function VoidGame({ slug }: { slug: string }) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current)
@@ -65,6 +76,8 @@ export function VoidGame({ slug }: { slug: string }) {
         survivalTimeMs={state.survivalTimeMs}
         bestTimeMs={Math.max(best, state.survivalTimeMs)}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

@@ -36,8 +36,11 @@ export function EffectsProvider({ children }: { children: React.ReactNode }) {
       triggerEquippedEffect();
     });
 
-    const unsubEquip = platform.on("itemEquipped", () => {
-      playSound("equip");
+    const unsubEquip = platform.on("itemEquipped", (payload) => {
+      playSound("equip", {
+        // Si justo equipa un sound pack, usar ese item para reproducir feedback inmediato
+        packItemId: payload.slot === "soundPack" ? payload.itemId : undefined,
+      });
     });
 
     return () => {

@@ -6,12 +6,16 @@ interface ResultScreenProps {
   survivalTimeMs: number;
   bestTimeMs: number;
   onRetry: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
 export function ResultScreen({
   survivalTimeMs,
   bestTimeMs,
   onRetry,
+  backHref = "/games",
+  backLabel = "Volver al catalogo",
 }: ResultScreenProps) {
   const seconds = Math.floor(survivalTimeMs / 1000);
   const bestSeconds = Math.floor(bestTimeMs / 1000);
@@ -43,10 +47,10 @@ export function ResultScreen({
           Reintentar
         </button>
         <Link
-          href="/games"
+          href={backHref}
           className="rounded-lg border border-zinc-600 px-6 py-2.5 text-sm font-medium text-zinc-400 transition hover:border-zinc-500 hover:bg-zinc-800"
         >
-          Catálogo
+          {backLabel}
         </Link>
       </div>
     </div>

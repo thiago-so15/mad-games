@@ -269,3 +269,37 @@ html[data-cursor="glow"] * {
 .effect-glow {
   animation: screen-glow-pulse 0.5s ease-out;
 }
+
+/* ========== AJUSTES: Efectos visuales / rendimiento ========== */
+html[data-vfx="low"] .animate-pulse-soft,
+html[data-vfx="low"] .animate-arcade-glow,
+html[data-vfx="low"] .animate-unlock-reveal,
+html[data-vfx="low"] .effect-shake,
+html[data-vfx="low"] .effect-flash,
+html[data-vfx="low"] .effect-glow {
+  animation: none !important;
+}
+
+html[data-vfx="low"] .transition-arcade {
+  transition-duration: 0.01ms !important;
+}
+
+/* Hacer el cambio notorio dentro del gameplay */
+html[data-vfx="low"] .game-container [class*="animate-"],
+html[data-vfx="low"] .game-container [class*="shadow"],
+html[data-vfx="low"] .game-container [class*="backdrop-blur"] {
+  animation: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-vfx="low"] .game-container .hover-lift:hover,
+html[data-vfx="low"] .game-container .hover-lift:active {
+  transform: none !important;
+}
+
+html[data-performance="low"] * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

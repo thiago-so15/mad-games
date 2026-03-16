@@ -6,9 +6,11 @@ interface ResultScreenProps {
   score: number;
   bestScore: number;
   onRetry: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
-export function ResultScreen({ score, bestScore, onRetry }: ResultScreenProps) {
+export function ResultScreen({ score, bestScore, onRetry, backHref = "/games", backLabel = "Volver al catalogo" }: ResultScreenProps) {
   const isNewRecord = score >= bestScore && bestScore > 0;
 
   return (
@@ -37,10 +39,10 @@ export function ResultScreen({ score, bestScore, onRetry }: ResultScreenProps) {
           Reintentar
         </button>
         <Link
-          href="/games"
+          href={backHref}
           className="rounded-lg border border-zinc-600 px-6 py-2.5 font-medium text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800"
         >
-          Volver al catálogo
+          {backLabel}
         </Link>
       </div>
     </div>

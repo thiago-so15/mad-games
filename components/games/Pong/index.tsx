@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { usePongGame } from "@/lib/games/pong/usePongGame";
@@ -16,18 +17,35 @@ interface PongGameProps {
 }
 
 export function PongGame({ slug }: PongGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const pongStats = useStore((s) => s.pongStats);
   const updatePongStats = useStore((s) => s.updatePongStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const requestedMode = searchParams.get("mode");
+  const requestedDifficulty = searchParams.get("difficulty");
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
+  const initialMode: GameMode =
+    requestedMode === "classic" ||
+    requestedMode === "vsAi" ||
+    requestedMode === "local2p" ||
+    requestedMode === "survival"
+      ? requestedMode
+      : "classic";
+  const initialDifficulty: AiDifficulty =
+    requestedDifficulty === "easy" || requestedDifficulty === "normal" || requestedDifficulty === "hard"
+      ? requestedDifficulty
+      : "normal";
 
   const [screen, setScreen] = useState<Screen>("start");
-  const [mode, setMode] = useState<GameMode>("classic");
-  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>("normal");
+  const [mode, setMode] = useState<GameMode>(initialMode);
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>(initialDifficulty);
   const recordedResultRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef<number>(0);
 
-  const speedMultiplier = settings.pongSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.pongSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, launch, togglePause } = usePongGame(
     mode,
     aiDifficulty,
@@ -62,6 +80,12 @@ export function PongGame({ slug }: PongGameProps) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || !state.gameOver || !state.winner || recordedResultRef.current)
@@ -128,6 +152,8 @@ export function PongGame({ slug }: PongGameProps) {
         survivalTimeMs={state.survivalTimeMs || undefined}
         bestSurvivalTimeMs={pongStats.bestSurvivalTimeMs || undefined}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

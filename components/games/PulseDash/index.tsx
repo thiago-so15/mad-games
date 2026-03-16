@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { usePulseDashGame } from "@/lib/games/pulse-dash/usePulseDashGame";
@@ -11,15 +12,19 @@ import { ResultScreen } from "./ResultScreen";
 type Screen = "start" | "playing" | "result";
 
 export function PulseDashGame({ slug }: { slug: string }) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const pulseDashStats = useStore((s) => s.pulseDashStats);
   const updatePulseDashStats = useStore((s) => s.updatePulseDashStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
-  const speedMultiplier = settings.pulseDashSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.pulseDashSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, togglePause } = usePulseDashGame(speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -39,6 +44,12 @@ export function PulseDashGame({ slug }: { slug: string }) {
   }, [start]);
 
   useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
+
+  useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current) return;
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
@@ -54,7 +65,15 @@ export function PulseDashGame({ slug }: { slug: string }) {
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {
     const best = pulseDashStats?.bestDistance ?? 0;
-    return <ResultScreen distance={state.distance} bestDistance={Math.max(best, state.distance)} onRetry={handleRetry} />;
+    return (
+      <ResultScreen
+        distance={state.distance}
+        bestDistance={Math.max(best, state.distance)}
+        onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
+      />
+    );
   }
   return (
     <div className="relative">

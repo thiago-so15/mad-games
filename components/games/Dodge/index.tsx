@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useDodgeGame } from "@/lib/games/dodge/useDodgeGame";
@@ -15,16 +16,20 @@ interface DodgeGameProps {
 }
 
 export function DodgeGame({ slug }: DodgeGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const updateDodgeStats = useStore((s) => s.updateDodgeStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
-  const speedMultiplier = settings.dodgeSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.dodgeSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, togglePause } = useDodgeGame(speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -42,6 +47,12 @@ export function DodgeGame({ slug }: DodgeGameProps) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current) return;
@@ -71,6 +82,8 @@ export function DodgeGame({ slug }: DodgeGameProps) {
         survivalTimeMs={state.survivalTimeMs}
         bestTimeMs={Math.max(bestTimeMs, state.survivalTimeMs)}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

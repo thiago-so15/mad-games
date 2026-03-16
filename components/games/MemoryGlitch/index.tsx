@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useMemoryGlitchGame } from "@/lib/games/memory-glitch/useMemoryGlitchGame";
@@ -11,11 +12,15 @@ import { ResultScreen } from "./ResultScreen";
 type Screen = "start" | "playing" | "result";
 
 export function MemoryGlitchGame({ slug }: { slug: string }) {
+  const searchParams = useSearchParams();
   const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
   const updateMemoryGlitchStats = useStore((s) => s.updateMemoryGlitchStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
   const { state, start, togglePause, inputKey } = useMemoryGlitchGame();
@@ -37,6 +42,12 @@ export function MemoryGlitchGame({ slug }: { slug: string }) {
   }, [start]);
 
   useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
+
+  useEffect(() => {
     if (screen !== "playing" || !state.gameOver || recordedRef.current) return;
     recordedRef.current = true;
     const timePlayedMs = Math.max(0, Date.now() - gameStartTimeRef.current);
@@ -52,7 +63,15 @@ export function MemoryGlitchGame({ slug }: { slug: string }) {
   if (screen === "start") return <StartScreen onPlay={handlePlay} />;
   if (screen === "result") {
     const best = memoryGlitchStats?.bestRounds ?? 0;
-    return <ResultScreen rounds={state.round} bestRounds={Math.max(best, state.round)} onRetry={handleRetry} />;
+    return (
+      <ResultScreen
+        rounds={state.round}
+        bestRounds={Math.max(best, state.round)}
+        onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
+      />
+    );
   }
   return (
     <div className="relative">

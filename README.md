@@ -18,7 +18,6 @@ Plataforma arcade moderna con múltiples juegos, sistema de progresión, logros,
 | **Shift** | Habilidad | ★★★ | El mundo alterna estados. Cambiá de fase en el momento justo |
 | **Overload** | Habilidad | ★★★ | El núcleo se sobrecarga. Liberá energía en la zona verde antes del 100% |
 | **Polar** | Habilidad | ★★★ | Núcleo con polaridad + o −. Coincidí con la polaridad del obstáculo al impactar |
-| **???** | Secreto | — | Juego oculto. Se desbloquea jugando 3 partidas seguidas del mismo juego |
 
 ## Características
 

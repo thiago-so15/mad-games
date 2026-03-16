@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { SHOP_ITEMS, SHOP_CATEGORIES, getShopItemById } from "@/lib/shop";
+import { playSound } from "@/lib/sounds";
 import type { ShopCategory, ShopItemState, EquipSlot, EquippedItems } from "@/lib/types";
 
 function getItemState(
@@ -34,6 +35,15 @@ export default function ShopPage() {
   const madCoins = wallet?.madCoins ?? 0;
   const purchased = inventory?.purchasedItemIds ?? [];
   const equipped: EquippedItems = inventory?.equipped ?? { avatar: null, border: null, title: null, badge: null, theme: null, cursor: null, soundPack: null, screenEffect: null };
+  const handleEquip = (itemId: string) => {
+    const item = getShopItemById(itemId);
+    if (!item) return;
+    // Disparar sonido en el click del usuario para evitar bloqueos de autoplay.
+    playSound("equip", {
+      packItemId: item.type === "soundPack" ? item.id : (equipped.soundPack ?? undefined),
+    });
+    equipItem(itemId);
+  };
 
   const items = SHOP_ITEMS.filter((i) => i.category === category);
 
@@ -118,7 +128,7 @@ export default function ShopPage() {
                   {isPurchased && (
                     <button
                       type="button"
-                      onClick={() => equipItem(item.id)}
+                      onClick={() => handleEquip(item.id)}
                       className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                       Equipar
@@ -176,7 +186,7 @@ export default function ShopPage() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => equipItem(id)}
+                      onClick={() => handleEquip(id)}
                       className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
                     >
                       Equipar

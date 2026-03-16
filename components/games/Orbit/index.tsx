@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useOrbitGame } from "@/lib/games/orbit/useOrbitGame";
@@ -15,16 +16,20 @@ interface OrbitGameProps {
 }
 
 export function OrbitGame({ slug }: OrbitGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const orbitStats = useStore((s) => s.orbitStats);
   const updateOrbitStats = useStore((s) => s.updateOrbitStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
-  const speedMultiplier = settings.orbitSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.orbitSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, togglePause } = useOrbitGame(speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -42,6 +47,12 @@ export function OrbitGame({ slug }: OrbitGameProps) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current) return;
@@ -68,6 +79,8 @@ export function OrbitGame({ slug }: OrbitGameProps) {
         score={state.score}
         bestScore={Math.max(best, state.score)}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

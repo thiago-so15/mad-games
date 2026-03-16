@@ -8,6 +8,7 @@ import { UnlockReveal } from "@/components/UnlockReveal";
 import { UnlockMessage } from "@/components/UnlockMessage";
 import { SessionReset } from "@/components/SessionReset";
 import { EffectsProvider } from "@/components/EffectsProvider";
+import { VisualEffectsProvider } from "@/components/VisualEffectsProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default function RootLayout({
       >
         <StoreHydration />
         <ThemeProvider />
+        <VisualEffectsProvider />
         <CursorProvider />
         <SessionReset />
         <EffectsProvider>

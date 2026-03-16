@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useBreakoutGame } from "@/lib/games/breakout/useBreakoutGame";
@@ -16,16 +17,25 @@ interface BreakoutGameProps {
 }
 
 export function BreakoutGame({ slug }: BreakoutGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const breakoutStats = useStore((s) => s.breakoutStats);
   const updateBreakoutStats = useStore((s) => s.updateBreakoutStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
+  const requestedMode = searchParams.get("mode");
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
+  const initialMode: GameMode =
+    requestedMode === "campaign" || requestedMode === "endless" || requestedMode === "challenge"
+      ? requestedMode
+      : "campaign";
 
   const [screen, setScreen] = useState<Screen>("start");
-  const [mode, setMode] = useState<GameMode>("campaign");
+  const [mode, setMode] = useState<GameMode>(initialMode);
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
 
-  const speedMultiplier = settings.breakoutSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.breakoutSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, nextLevel, togglePause } = useBreakoutGame(mode, speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -46,6 +56,12 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
     setScreen("playing");
     nextLevel();
   }, [nextLevel]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing") return;
@@ -103,6 +119,8 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
         bestScore={Math.max(bestScore, state.score)}
         onContinue={handleContinue}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

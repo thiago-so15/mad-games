@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { platform } from "@/lib/platform-events";
 import { useReactorGame } from "@/lib/games/reactor/useReactorGame";
@@ -15,16 +16,20 @@ interface ReactorGameProps {
 }
 
 export function ReactorGame({ slug }: ReactorGameProps) {
+  const searchParams = useSearchParams();
   const settings = useStore((s) => s.settings);
   const reactorStats = useStore((s) => s.reactorStats);
   const updateReactorStats = useStore((s) => s.updateReactorStats);
   const setLastPlayedGame = useStore((s) => s.setLastPlayedGame);
 
+  const launchedFromHome = searchParams.get("from") === "home";
+  const autoplay = searchParams.get("autoplay") === "1";
   const [screen, setScreen] = useState<Screen>("start");
   const recordedRef = useRef(false);
+  const autoStartedRef = useRef(false);
   const gameStartTimeRef = useRef(0);
 
-  const speedMultiplier = settings.reactorSpeedMultiplier ?? 1;
+  const speedMultiplier = (settings.reactorSpeedMultiplier ?? 1) * (settings.lowPerformanceMode ? 0.85 : 1);
   const { state, start, togglePause } = useReactorGame(speedMultiplier);
 
   const handlePlay = useCallback(() => {
@@ -42,6 +47,12 @@ export function ReactorGame({ slug }: ReactorGameProps) {
     setScreen("playing");
     start();
   }, [start]);
+
+  useEffect(() => {
+    if (!autoplay || screen !== "start" || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    handlePlay();
+  }, [autoplay, screen, handlePlay]);
 
   useEffect(() => {
     if (screen !== "playing" || state.phase !== "gameOver" || recordedRef.current) return;
@@ -73,6 +84,8 @@ export function ReactorGame({ slug }: ReactorGameProps) {
         bestCombo={state.bestCombo}
         bestPulsesEver={Math.max(bestPulses, state.pulsesSurvived)}
         onRetry={handleRetry}
+        backHref={launchedFromHome ? "/" : "/games"}
+        backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );
   }

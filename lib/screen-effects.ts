@@ -8,11 +8,19 @@ import { getShopItemById } from "./shop";
 
 export type ScreenEffectType = "shake" | "flash" | "glow";
 
+function shouldRenderScreenEffects(): boolean {
+  const settings = useStore.getState().settings;
+  if (!settings) return true;
+  if (settings.lowPerformanceMode) return false;
+  return (settings.visualEffects ?? "high") === "high";
+}
+
 /**
  * Dispara un efecto de pantalla si el usuario tiene uno equipado.
  * El efecto es puramente cosmético.
  */
 export function triggerScreenEffect(effectType: ScreenEffectType) {
+  if (!shouldRenderScreenEffects()) return;
   const equippedEffectId = useStore.getState().inventory?.equipped?.screenEffect ?? null;
   if (!equippedEffectId) return;
 
@@ -42,6 +50,7 @@ export function triggerScreenEffect(effectType: ScreenEffectType) {
  * Útil para eventos genéricos como "nuevo récord".
  */
 export function triggerEquippedEffect() {
+  if (!shouldRenderScreenEffects()) return;
   const equippedEffectId = useStore.getState().inventory?.equipped?.screenEffect ?? null;
   if (!equippedEffectId) return;
 

@@ -133,7 +133,17 @@ export function HomeQuickPlay() {
 
       {openSidebar && (
         <aside className="fixed bottom-24 left-3 right-3 z-30 rounded-2xl border border-zinc-700 bg-zinc-900/95 p-3 shadow-2xl sm:left-0 sm:right-auto sm:top-1/2 sm:w-52 sm:-translate-y-1/2 sm:rounded-r-2xl sm:rounded-l-none">
-          <p className="mb-2 px-1 text-xs uppercase tracking-wide text-zinc-400">Accesos</p>
+          <div className="mb-2 flex items-center justify-between gap-2 px-1">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Accesos</p>
+            <button
+              type="button"
+              onClick={() => setOpenSidebar(false)}
+              aria-label="Cerrar accesos"
+              className="rounded-md border border-zinc-600 px-2 py-0.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
+            >
+              ◀
+            </button>
+          </div>
           <div className="flex flex-col gap-2">
             <button
               type="button"

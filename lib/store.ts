@@ -3,9 +3,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { UserProfile, GameScore, GameSettings, SnakeStats, PongStats, BreakoutStats, DodgeStats, ReactorStats, OrbitStats, PulseDashStats, MemoryGlitchStats, CoreDefenseStats, ShiftStats, OverloadStats, PolarStats, VoidStats, Progression, Wallet, Inventory, EquipSlot, DailyChallengeState } from "./types";
-import { getUnlockedAchievementIds } from "./achievements";
+import { getUnlockedAchievementIds, pruneUnknownAchievementIds } from "./achievements";
 import { platform } from "./platform-events";
-import { getShopItemById, getEquipSlotForItemType } from "./shop";
+import { getShopItemById, getEquipSlotForItemType, isFreeProfileAvatar } from "./shop";
 import { getTodayDateKey, applyDailyProgress } from "./daily-challenges";
 
 const STORAGE_KEY = "mad-games-store";
@@ -294,13 +294,13 @@ export const useStore = create<StoreState>()(
     (set, get) => ({
       ...getDefaultState(),
       setProfile: (partial) =>
-        set((state) => ({
-          profile: {
-            ...state.profile,
-            ...partial,
-            updatedAt: Date.now(),
-          },
-        })),
+        set((state) => {
+          const next = { ...state.profile, ...partial, updatedAt: Date.now() };
+          if (partial.avatar !== undefined && !isFreeProfileAvatar(partial.avatar)) {
+            next.avatar = "🎮";
+          }
+          return { profile: next };
+        }),
       setSettings: (partial) =>
         set((state) => ({
           settings: { ...state.settings, ...partial },
@@ -725,13 +725,15 @@ export const useStore = create<StoreState>()(
         const state = get();
         if (state.inventory.purchasedItemIds.includes(itemId)) return false;
         if ((state.wallet?.madCoins ?? 0) < item.price) return false;
-        set((s) => ({
-          wallet: { madCoins: Math.max(0, (s.wallet?.madCoins ?? 0) - item.price) },
-          inventory: {
+        set((s) => {
+          const wallet = { madCoins: Math.max(0, (s.wallet?.madCoins ?? 0) - item.price) };
+          const inventory = {
             ...(s.inventory ?? defaultInventory),
             purchasedItemIds: [...(s.inventory?.purchasedItemIds ?? []), itemId],
-          },
-        }));
+          };
+          const unlockedAchievementIds = mergeAchievementIds(s, { wallet, inventory });
+          return { wallet, inventory, unlockedAchievementIds };
+        });
         platform.emit("itemPurchased", { itemId, price: item.price });
         return true;
       },
@@ -797,6 +799,27 @@ export const useStore = create<StoreState>()(
     {
       name: STORAGE_KEY,
       storage: createJSONStorage(getStorage),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<StoreState> | undefined;
+        const merged = { ...current, ...p } as StoreState;
+        const purchased = merged.inventory?.purchasedItemIds ?? [];
+        const ownedAvatarValues = new Set(
+          purchased
+            .map((id) => {
+              const item = getShopItemById(id);
+              return item?.type === "avatar" ? item.value : null;
+            })
+            .filter((v): v is string => v != null)
+        );
+        const av = merged.profile?.avatar ?? "🎮";
+        if (!isFreeProfileAvatar(av) && !ownedAvatarValues.has(av)) {
+          merged.profile = { ...merged.profile, avatar: "🎮" };
+        }
+        const pruned = pruneUnknownAchievementIds(merged.unlockedAchievementIds ?? []);
+        const recomputed = getUnlockedAchievementIds(merged);
+        merged.unlockedAchievementIds = Array.from(new Set([...pruned, ...recomputed]));
+        return merged;
+      },
       partialize: (state) => ({
         profile: state.profile,
         scores: state.scores,

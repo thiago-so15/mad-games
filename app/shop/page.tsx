@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useStore, getXpToNextLevel } from "@/lib/store";
-import { SHOP_ITEMS, SHOP_CATEGORIES, getShopItemById } from "@/lib/shop";
+import { SHOP_NAV_SECTIONS, getShopItemById, getShopItemsByType } from "@/lib/shop";
 import { playSound } from "@/lib/sounds";
-import type { ShopCategory, ShopItemState, EquipSlot, EquippedItems } from "@/lib/types";
+import type { ShopItemState, EquipSlot, EquippedItems, ShopItemType } from "@/lib/types";
+
+/** Vista previa aproximada del fondo por tema (solo UI tienda). */
+const THEME_PREVIEW: Record<string, string> = {
+  midnight: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)",
+  forest: "linear-gradient(135deg, #052e16 0%, #14532d 100%)",
+  sunset: "linear-gradient(135deg, #431407 0%, #c2410c 55%, #fb923c 100%)",
+  neon: "linear-gradient(135deg, #1a0a2e 0%, #4c1d95 40%, #db2777 100%)",
+};
 
 function getItemState(
   item: { id: string; price: number; minLevel?: number },
@@ -23,7 +31,7 @@ function getItemState(
 }
 
 export default function ShopPage() {
-  const [category, setCategory] = useState<ShopCategory>("profile");
+  const [section, setSection] = useState<ShopItemType>("avatar");
   const wallet = useStore((s) => s.wallet);
   const inventory = useStore((s) => s.inventory);
   const totalXp = useStore((s) => s.progression.totalXp);
@@ -45,13 +53,34 @@ export default function ShopPage() {
     equipItem(itemId);
   };
 
-  const items = SHOP_ITEMS.filter((i) => i.category === category);
+  const items = useMemo(() => getShopItemsByType(section), [section]);
+  const sectionMeta = SHOP_NAV_SECTIONS.find((s) => s.type === section);
+  const itemCountByType = useMemo(() => {
+    const m = new Map<ShopItemType, number>();
+    for (const s of SHOP_NAV_SECTIONS) {
+      m.set(s.type, getShopItemsByType(s.type).length);
+    }
+    return m;
+  }, []);
+
+  const purchasedSorted = useMemo(() => {
+    const order = SHOP_NAV_SECTIONS.map((s) => s.type);
+    return [...purchased].sort((a, b) => {
+      const ia = getShopItemById(a);
+      const ib = getShopItemById(b);
+      const oa = ia ? order.indexOf(ia.type) : 99;
+      const ob = ib ? order.indexOf(ib.type) : 99;
+      if (oa !== ob) return oa - ob;
+      return a.localeCompare(b);
+    });
+  }, [purchased]);
 
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Tienda</h1>
       <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-        Comprá con MAD Coins. Todo es permanente. No afecta el gameplay.
+        Elegí una categoría abajo: iconos, temas, cursores, títulos, badges, sonidos, luces y bordes. Todo es permanente con MAD
+        Coins; no afecta el gameplay.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/50">
@@ -63,22 +92,44 @@ export default function ShopPage() {
         </p>
       </div>
 
-      <div className="mt-8 flex gap-2 border-b border-zinc-200 dark:border-zinc-700">
-        {SHOP_CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => setCategory(c.id)}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
-              category === c.id
-                ? "border-red-500 text-red-600 dark:border-red-400 dark:text-red-400"
-                : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-            }`}
-          >
-            {c.icon} {c.label}
-          </button>
-        ))}
-      </div>
+      <nav className="mt-8 -mx-1 overflow-x-auto pb-1" aria-label="Categorías de la tienda">
+        <div className="flex min-w-min flex-nowrap gap-2 px-1 sm:flex-wrap">
+          {SHOP_NAV_SECTIONS.map((s) => {
+            const count = itemCountByType.get(s.type) ?? 0;
+            const active = section === s.type;
+            return (
+              <button
+                key={s.type}
+                type="button"
+                onClick={() => setSection(s.type)}
+                className={`shrink-0 rounded-xl border px-3 py-2 text-left text-sm font-medium transition ${
+                  active
+                    ? "border-red-500 bg-red-500/10 text-red-700 dark:border-red-400 dark:bg-red-500/15 dark:text-red-300"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:border-zinc-600"
+                }`}
+              >
+                <span className="mr-1.5" aria-hidden>
+                  {s.icon}
+                </span>
+                {s.shortLabel}
+                <span className="ml-1 text-xs font-normal opacity-70">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {sectionMeta && (
+        <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+            <span className="mr-2" aria-hidden>
+              {sectionMeta.icon}
+            </span>
+            {sectionMeta.label}
+          </h2>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{sectionMeta.description}</p>
+        </div>
+      )}
 
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => {
@@ -100,9 +151,18 @@ export default function ShopPage() {
               }`}
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="text-3xl" role="img" aria-hidden>
-                  {item.icon ?? item.value}
-                </span>
+                {item.type === "theme" && THEME_PREVIEW[item.value] ? (
+                  <span
+                    className="h-12 w-12 shrink-0 rounded-lg border border-zinc-200 shadow-inner dark:border-zinc-600"
+                    style={{ background: THEME_PREVIEW[item.value] }}
+                    title={item.name}
+                    aria-hidden
+                  />
+                ) : (
+                  <span className="text-3xl" role="img" aria-hidden>
+                    {item.icon ?? item.value}
+                  </span>
+                )}
                 {item.minLevel != null && level < item.minLevel && (
                   <span className="rounded bg-zinc-200 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400">
                     Nv.{item.minLevel}
@@ -170,7 +230,7 @@ export default function ShopPage() {
           </p>
         ) : (
           <ul className="mt-4 flex flex-wrap gap-2">
-            {purchased.map((id) => {
+            {purchasedSorted.map((id) => {
               const item = getShopItemById(id);
               if (!item) return null;
               const isEquipped = Object.values(equipped).includes(id);

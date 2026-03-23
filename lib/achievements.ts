@@ -24,28 +24,21 @@ export interface StoreStateForAchievements {
   polarStats?: PolarStats;
   voidStats?: VoidStats;
   sessionConsecutivePlays?: { count: number; gameSlug: string | null };
+  /** Compras en la tienda (para logros de “compraste tu primer…”) */
+  inventory?: { purchasedItemIds?: string[] };
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: "first_game_over", icon: "💀", name: "Primer Game Over", description: "Perdiste tu primera partida", gameSlug: null, rarity: "common" },
-  { id: "games_10", icon: "🎯", name: "En marcha", description: "10 partidas jugadas", gameSlug: null, rarity: "rare" },
-  { id: "games_100", icon: "🔥", name: "Centenario", description: "100 partidas jugadas", gameSlug: null, rarity: "legendary" },
-  { id: "records_5", icon: "🏆", name: "Récords personales", description: "Superaste 5 récords personales (en total)", gameSlug: null, rarity: "legendary" },
+  { id: "first_play", icon: "🎮", name: "Primera partida", description: "Completaste tu primera partida", gameSlug: null, rarity: "common" },
+  { id: "games_10", icon: "🎯", name: "En marcha", description: "Llegaste a 10 partidas jugadas", gameSlug: null, rarity: "rare" },
+  { id: "games_50", icon: "🎲", name: "Rodando", description: "Llegaste a 50 partidas jugadas", gameSlug: null, rarity: "rare" },
+  { id: "games_100", icon: "🔥", name: "Centenario", description: "Llegaste a 100 partidas jugadas", gameSlug: null, rarity: "legendary" },
+  { id: "records_5", icon: "🏆", name: "Récords personales", description: "Superaste 5 récords personales en total", gameSlug: null, rarity: "legendary" },
   { id: "level_5", icon: "⬆️", name: "Nivel 5", description: "Alcanzaste el nivel 5 global", gameSlug: null, rarity: "rare" },
   { id: "level_10", icon: "🌟", name: "Nivel 10", description: "Alcanzaste el nivel 10 global", gameSlug: null, rarity: "legendary" },
-  { id: "snake_first", icon: "🐍", name: "Primera serpiente", description: "Jugaste tu primera partida de Snake", gameSlug: "snake", rarity: "common" },
-  { id: "pong_first", icon: "🏓", name: "Primer saque", description: "Jugaste tu primera partida de Pong", gameSlug: "pong", rarity: "common" },
-  { id: "breakout_first", icon: "🧱", name: "Primer bloque", description: "Jugaste tu primera partida de Breakout", gameSlug: "breakout", rarity: "common" },
-  { id: "dodge_first", icon: "🕹️", name: "Primer esquive", description: "Jugaste tu primera partida de Dodge Madness", gameSlug: "dodge", rarity: "common" },
-  { id: "reactor_first", icon: "⚡", name: "Primer pulso", description: "Jugaste tu primera partida de Reactor Break", gameSlug: "reactor", rarity: "common" },
-  { id: "orbit_first", icon: "🕹️", name: "Primera órbita", description: "Jugaste tu primera partida de Orbit", gameSlug: "orbit", rarity: "common" },
-  { id: "pulse_dash_first", icon: "⚡", name: "Primer dash", description: "Jugaste tu primera partida de Pulse Dash", gameSlug: "pulse-dash", rarity: "common" },
-  { id: "memory_glitch_first", icon: "🧠", name: "Primer glitch", description: "Jugaste tu primera partida de Memory Glitch", gameSlug: "memory-glitch", rarity: "common" },
-  { id: "core_defense_first", icon: "💣", name: "Primera defensa", description: "Jugaste tu primera partida de Core Defense", gameSlug: "core-defense", rarity: "common" },
-  { id: "shift_first", icon: "🌀", name: "Primer shift", description: "Jugaste tu primera partida de Shift", gameSlug: "shift", rarity: "common" },
-  { id: "overload_first", icon: "🔥", name: "Primera sobrecarga", description: "Jugaste tu primera partida de Overload", gameSlug: "overload", rarity: "common" },
-  { id: "polar_first", icon: "🧲", name: "Primera polaridad", description: "Jugaste tu primera partida de Polar", gameSlug: "polar", rarity: "common" },
-  { id: "void_first", icon: "◯", name: "Void", description: "Jugaste tu primera partida de Void", gameSlug: "void", rarity: "common" },
+  { id: "shop_first", icon: "🛒", name: "Primera compra", description: "Compraste tu primer ítem en la tienda", gameSlug: null, rarity: "common" },
+  { id: "shop_5", icon: "🪙", name: "Coleccionista", description: "Compraste 5 ítems en la tienda", gameSlug: null, rarity: "rare" },
+  { id: "shop_10", icon: "💎", name: "Cliente fiel", description: "Compraste 10 ítems en la tienda", gameSlug: null, rarity: "legendary" },
 ];
 
 /** Cuenta total de récords personales superados (estimado por juegos con bestScore/bestTime) */
@@ -93,26 +86,25 @@ export function getUnlockedAchievementIds(state: StoreStateForAchievements): str
     (state.voidStats?.gamesPlayed ?? 0);
   const level = getLevel(state.progression.totalXp);
   const records = countPersonalRecords(state);
+  const purchases = state.inventory?.purchasedItemIds?.length ?? 0;
 
-  if (totalGames >= 1) unlocked.add("first_game_over");
+  if (totalGames >= 1) unlocked.add("first_play");
   if (totalGames >= 10) unlocked.add("games_10");
+  if (totalGames >= 50) unlocked.add("games_50");
   if (totalGames >= 100) unlocked.add("games_100");
   if (records >= 5) unlocked.add("records_5");
   if (level >= 5) unlocked.add("level_5");
   if (level >= 10) unlocked.add("level_10");
-  if (state.snakeStats.gamesPlayed >= 1) unlocked.add("snake_first");
-  if (state.pongStats.gamesPlayed >= 1) unlocked.add("pong_first");
-  if (state.breakoutStats.gamesPlayed >= 1) unlocked.add("breakout_first");
-  if ((state.dodgeStats?.gamesPlayed ?? 0) >= 1) unlocked.add("dodge_first");
-  if ((state.reactorStats?.gamesPlayed ?? 0) >= 1) unlocked.add("reactor_first");
-  if ((state.orbitStats?.gamesPlayed ?? 0) >= 1) unlocked.add("orbit_first");
-  if ((state.pulseDashStats?.gamesPlayed ?? 0) >= 1) unlocked.add("pulse_dash_first");
-  if ((state.memoryGlitchStats?.gamesPlayed ?? 0) >= 1) unlocked.add("memory_glitch_first");
-  if ((state.coreDefenseStats?.gamesPlayed ?? 0) >= 1) unlocked.add("core_defense_first");
-  if ((state.shiftStats?.gamesPlayed ?? 0) >= 1) unlocked.add("shift_first");
-  if ((state.overloadStats?.gamesPlayed ?? 0) >= 1) unlocked.add("overload_first");
-  if ((state.polarStats?.gamesPlayed ?? 0) >= 1) unlocked.add("polar_first");
-  if ((state.voidStats?.gamesPlayed ?? 0) >= 1) unlocked.add("void_first");
+  if (purchases >= 1) unlocked.add("shop_first");
+  if (purchases >= 5) unlocked.add("shop_5");
+  if (purchases >= 10) unlocked.add("shop_10");
 
   return Array.from(unlocked);
+}
+
+const KNOWN_ACHIEVEMENT_IDS = new Set(ACHIEVEMENTS.map((a) => a.id));
+
+/** Quita IDs de logros viejos que ya no existen (p. ej. “primera partida en X”). */
+export function pruneUnknownAchievementIds(ids: string[]): string[] {
+  return ids.filter((id) => KNOWN_ACHIEVEMENT_IDS.has(id));
 }

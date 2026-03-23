@@ -3,11 +3,9 @@
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { getGameBySlug } from "@/lib/games";
-import { getShopItemById } from "@/lib/shop";
+import { getShopItemById, FREE_AVATAR_VALUES } from "@/lib/shop";
 import { LEVEL_UNLOCKS } from "@/lib/types";
 import Link from "next/link";
-
-const AVATAR_PRESETS = ["🎮", "🐍", "🏓", "🧱", "🕹️", "⚡", "🌟", "🔥", "👤", "🎯"];
 
 function formatTime(ms: number): string {
   if (ms < 60000) return "0 min";
@@ -110,7 +108,11 @@ export default function ProfilePage() {
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Identidad</h2>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Avatares gratuitos y personalización de la tienda (bordes, títulos, badges) se muestran en la barra de navegación.
+          Solo hay dos avatares gratis aquí; el resto se compra en la{" "}
+          <Link href="/shop" className="font-medium text-amber-600 hover:underline dark:text-amber-400">
+            tienda
+          </Link>{" "}
+          y se equipa desde el inventario. Bordes, títulos y badges también en la tienda.
         </p>
         <div className="mt-4 flex items-center gap-2">
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-arcade ${borderClass}`}>
@@ -137,9 +139,9 @@ export default function ProfilePage() {
             />
           </div>
           <div>
-            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Avatar</label>
+            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Avatar gratis (sin equipar de tienda)</label>
             <div className="mt-2 flex flex-wrap gap-2">
-              {AVATAR_PRESETS.map((emoji) => (
+              {FREE_AVATAR_VALUES.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
@@ -155,15 +157,9 @@ export default function ProfilePage() {
                 </button>
               ))}
             </div>
-            <input
-              id="avatar"
-              type="text"
-              value={profile.avatar}
-              onChange={(e) => setProfile({ avatar: e.target.value || "🎮" })}
-              className="mt-2 w-20 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-center text-2xl dark:border-zinc-600 dark:bg-zinc-800"
-              maxLength={2}
-              placeholder="O emoji libre"
-            />
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Si tienes un avatar de la tienda equipado, ese es el que se muestra en la navegación.
+            </p>
           </div>
         </div>
       </section>

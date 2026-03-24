@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { useStore, getXpToNextLevel } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { getGameBySlug } from "@/lib/games";
 import { getShopItemById, FREE_AVATAR_VALUES } from "@/lib/shop";
 import { LEVEL_UNLOCKS } from "@/lib/types";
+import type { ShopItem } from "@/lib/types";
 import Link from "next/link";
 
 function formatTime(ms: number): string {
@@ -19,18 +21,14 @@ function formatTime(ms: number): string {
 export default function ProfilePage() {
   const profile = useStore((s) => s.profile);
   const setProfile = useStore((s) => s.setProfile);
+  const equipItem = useStore((s) => s.equipItem);
+  const unequipSlot = useStore((s) => s.unequipSlot);
   const scores = useStore((s) => s.scores);
-  const getScoresByGame = useStore((s) => s.getScoresByGame);
   const snakeStats = useStore((s) => s.snakeStats);
   const pongStats = useStore((s) => s.pongStats);
   const breakoutStats = useStore((s) => s.breakoutStats);
   const dodgeStats = useStore((s) => s.dodgeStats);
   const reactorStats = useStore((s) => s.reactorStats);
-  const orbitStats = useStore((s) => s.orbitStats);
-  const pulseDashStats = useStore((s) => s.pulseDashStats);
-  const memoryGlitchStats = useStore((s) => s.memoryGlitchStats);
-  const coreDefenseStats = useStore((s) => s.coreDefenseStats);
-  const shiftStats = useStore((s) => s.shiftStats);
   const totalXp = useStore((s) => s.progression.totalXp);
   const unlockedAchievementIds = useStore((s) => s.unlockedAchievementIds);
   const wallet = useStore((s) => s.wallet);
@@ -78,11 +76,24 @@ export default function ProfilePage() {
     (dodgeStats?.totalTimeMs ?? 0) +
     (reactorStats?.totalTimeMs ?? 0);
 
-  const snakeScores = getScoresByGame("snake").slice(0, 5);
-  const pongScores = getScoresByGame("pong").slice(0, 5);
-  const breakoutScores = getScoresByGame("breakout").slice(0, 5);
-  const dodgeScores = getScoresByGame("dodge").slice(0, 5);
-  const reactorScores = getScoresByGame("reactor").slice(0, 5);
+  const purchasedAvatars = useMemo(() => {
+    const ids = inventory?.purchasedItemIds ?? [];
+    const items: ShopItem[] = [];
+    for (const id of ids) {
+      const item = getShopItemById(id);
+      if (item?.type === "avatar") items.push(item);
+    }
+    return items;
+  }, [inventory?.purchasedItemIds]);
+
+  const selectFreeAvatar = (emoji: (typeof FREE_AVATAR_VALUES)[number]) => {
+    unequipSlot("avatar");
+    setProfile({ avatar: emoji });
+  };
+
+  const selectPurchasedAvatar = (itemId: string) => {
+    equipItem(itemId);
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -108,13 +119,14 @@ export default function ProfilePage() {
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Identidad</h2>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Solo hay dos avatares gratis aquí; el resto se compra en la{" "}
+          Elegí entre dos avatares gratis o los que ya compraste en la{" "}
           <Link href="/shop" className="font-medium text-amber-600 hover:underline dark:text-amber-400">
             tienda
-          </Link>{" "}
-          y se equipa desde el inventario. Bordes, títulos y badges también en la tienda.
+          </Link>
+          . Bordes, títulos y badges también en la tienda.
         </p>
-        <div className="mt-4 flex items-center gap-2">
+
+        <div className="mt-5 flex items-center">
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-arcade ${borderClass}`}>
             <span className="text-lg" aria-hidden>{displayAvatar}</span>
             <span className="flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
@@ -124,9 +136,10 @@ export default function ProfilePage() {
             </span>
           </span>
         </div>
-        <div className="mt-6 flex flex-wrap items-end gap-6">
-          <div>
-            <label htmlFor="nickname" className="block text-sm text-zinc-500 dark:text-zinc-400">
+
+        <div className="mt-6 space-y-6 sm:grid sm:grid-cols-[auto_1fr] sm:gap-x-8 sm:gap-y-0 sm:space-y-0">
+          <div className="space-y-2">
+            <label htmlFor="nickname" className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">
               Nickname
             </label>
             <input
@@ -134,31 +147,57 @@ export default function ProfilePage() {
               type="text"
               value={profile.nickname}
               onChange={(e) => setProfile({ nickname: e.target.value })}
-              className="mt-1 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 placeholder-zinc-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 placeholder-zinc-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500 sm:w-56"
               placeholder="Tu nombre"
             />
           </div>
-          <div>
-            <label className="block text-sm text-zinc-500 dark:text-zinc-400">Avatar gratis (sin equipar de tienda)</label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {FREE_AVATAR_VALUES.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setProfile({ avatar: emoji })}
-                  className={`rounded-lg border-2 p-2 text-2xl transition-arcade ${
-                    profile.avatar === emoji
-                      ? "border-red-500 bg-red-500/15 dark:border-red-400 dark:bg-red-500/20"
-                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
-                  }`}
-                  title={`Usar ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              ))}
+
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400">Avatar</label>
+            <div className="flex flex-wrap gap-2">
+              {FREE_AVATAR_VALUES.map((emoji) => {
+                const selected = !equippedAvatarId && profile.avatar === emoji;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => selectFreeAvatar(emoji)}
+                    className={`rounded-lg border-2 p-2 text-2xl transition-arcade ${
+                      selected
+                        ? "border-red-500 bg-red-500/15 dark:border-red-400 dark:bg-red-500/20"
+                        : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+                    }`}
+                    title={`Avatar gratis ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Si tienes un avatar de la tienda equipado, ese es el que se muestra en la navegación.
+            {purchasedAvatars.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {purchasedAvatars.map((item) => {
+                  const selected = equippedAvatarId === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => selectPurchasedAvatar(item.id)}
+                      className={`rounded-lg border-2 p-2 text-2xl transition-arcade ${
+                        selected
+                          ? "border-amber-500 bg-amber-500/15 dark:border-amber-400 dark:bg-amber-500/20"
+                          : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+                      }`}
+                      title={item.name}
+                    >
+                      <span aria-hidden>{item.icon ?? item.value}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Gratis (rojo) o comprados (ámbar). Se muestra en la barra de navegación.
             </p>
           </div>
         </div>
@@ -310,71 +349,6 @@ export default function ProfilePage() {
             );
           })}
         </ul>
-      </section>
-
-      <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Por juego</h2>
-        {scores.length === 0 ? (
-          <p className="mt-4 text-zinc-500 dark:text-zinc-400">
-            Aún no hay puntajes.{" "}
-            <Link href="/games" className="font-medium text-red-600 hover:underline dark:text-red-400">
-              Jugá un juego
-            </Link>
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-6">
-            <li>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Snake</p>
-              <p className="text-xs text-zinc-400">Mejor por modo · {snakeStats.gamesPlayed} partidas</p>
-              {snakeScores.map((s, i) => (
-                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
-                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score} pts</span>
-                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
-                </div>
-              ))}
-            </li>
-            <li>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Pong</p>
-              <p className="text-xs text-zinc-400">{pongStats.wins}V / {pongStats.losses}D · Racha: {pongStats.bestStreak}</p>
-              {pongScores.map((s, i) => (
-                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
-                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score}–{s.extra?.scoreRight ?? "?"}</span>
-                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
-                </div>
-              ))}
-            </li>
-            <li>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Breakout</p>
-              <p className="text-xs text-zinc-400">Nivel máx: {breakoutStats.maxLevelReached} · {breakoutStats.gamesPlayed} partidas</p>
-              {breakoutScores.map((s, i) => (
-                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
-                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score} pts{s.extra?.level ? ` (nivel ${s.extra.level})` : ""}</span>
-                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
-                </div>
-              ))}
-            </li>
-            <li>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Dodge Madness</p>
-              <p className="text-xs text-zinc-400">Mejor tiempo: {dodgeStats?.bestSurvivalTimeMs ? `${Math.floor(dodgeStats.bestSurvivalTimeMs / 1000)}s` : "—"} · {(dodgeStats?.gamesPlayed ?? 0)} partidas</p>
-              {dodgeScores.map((s, i) => (
-                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
-                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.extra?.survivalTimeMs ? `${Math.floor(Number(s.extra.survivalTimeMs) / 1000)}s` : `${s.score}ms`}</span>
-                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
-                </div>
-              ))}
-            </li>
-            <li>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Reactor Break</p>
-              <p className="text-xs text-zinc-400">Mejor: {(reactorStats?.bestPulsesSurvived ?? 0)} pulsos · Racha: {(reactorStats?.bestCombo ?? 0)} · {(reactorStats?.gamesPlayed ?? 0)} partidas</p>
-              {reactorScores.map((s, i) => (
-                <div key={s.playedAt} className="mt-1 flex justify-between rounded-lg bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800/50">
-                  <span className="text-zinc-700 dark:text-zinc-300">#{i + 1} — {s.score} pulsos{s.extra?.bestCombo ? ` (racha ${s.extra.bestCombo})` : ""}</span>
-                  <span className="text-zinc-500">{new Date(s.playedAt).toLocaleDateString("es-AR")}</span>
-                </div>
-              ))}
-            </li>
-          </ul>
-        )}
       </section>
     </div>
   );

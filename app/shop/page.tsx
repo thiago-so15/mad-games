@@ -32,6 +32,7 @@ function getItemState(
 
 export default function ShopPage() {
   const [section, setSection] = useState<ShopItemType>("avatar");
+  const [showInventory, setShowInventory] = useState(false);
   const wallet = useStore((s) => s.wallet);
   const inventory = useStore((s) => s.inventory);
   const totalXp = useStore((s) => s.progression.totalXp);
@@ -83,13 +84,33 @@ export default function ShopPage() {
         Coins; no afecta el gameplay.
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-        <span className="text-lg font-semibold text-amber-600 dark:text-amber-400">
-          {madCoins} <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">MAD Coins</span>
-        </span>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Ganás monedas jugando, superando récords y subiendo de nivel.
-        </p>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/50">
+          <span className="text-lg font-semibold text-amber-600 dark:text-amber-400">
+            {madCoins} <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">MAD Coins</span>
+          </span>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Ganás monedas jugando, superando récords y subiendo de nivel.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowInventory((v) => !v)}
+          className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+            showInventory
+              ? "border-red-500/60 bg-red-500/10 text-red-700 hover:bg-red-500/20 dark:border-red-400/50 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
+              : "border-zinc-300 bg-white text-zinc-800 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-950 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-amber-500/50 dark:hover:bg-amber-500/15 dark:hover:text-amber-100"
+          }`}
+          aria-expanded={showInventory}
+        >
+          <span aria-hidden>🎒</span>
+          {showInventory ? "Ocultar inventario" : "Ver inventario"}
+          {purchased.length > 0 && (
+            <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
+              {purchased.length}
+            </span>
+          )}
+        </button>
       </div>
 
       <nav className="mt-8 -mx-1 overflow-x-auto pb-1" aria-label="Categorías de la tienda">
@@ -102,10 +123,10 @@ export default function ShopPage() {
                 key={s.type}
                 type="button"
                 onClick={() => setSection(s.type)}
-                className={`shrink-0 rounded-xl border px-3 py-2 text-left text-sm font-medium transition ${
+                className={`shrink-0 rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors duration-150 ${
                   active
-                    ? "border-red-500 bg-red-500/10 text-red-700 dark:border-red-400 dark:bg-red-500/15 dark:text-red-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:border-zinc-600"
+                    ? "border-red-500 bg-red-500/10 text-red-700 hover:bg-red-500/15 dark:border-red-400 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/20"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-950 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:border-amber-500/50 dark:hover:bg-amber-500/15 dark:hover:text-amber-100"
                 }`}
               >
                 <span className="mr-1.5" aria-hidden>
@@ -144,10 +165,10 @@ export default function ShopPage() {
               key={item.id}
               className={`rounded-xl border p-4 transition-arcade ${
                 isEquipped
-                  ? "border-amber-500/60 bg-amber-500/10 dark:border-amber-400/50 dark:bg-amber-500/10"
+                  ? "border-amber-500/60 bg-amber-500/10 hover:border-amber-500/80 hover:bg-amber-500/15 dark:border-amber-400/50 dark:bg-amber-500/10 dark:hover:bg-amber-500/15"
                   : isLocked
                     ? "border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-800/30 opacity-90"
-                    : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800/50"
+                    : "border-zinc-200 bg-white hover:border-amber-400/80 hover:bg-amber-50/90 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-amber-500/40 dark:hover:bg-amber-500/10"
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -180,7 +201,7 @@ export default function ShopPage() {
                     <button
                       type="button"
                       onClick={() => purchaseItem(item.id)}
-                      className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-zinc-900 transition hover:bg-amber-400"
+                      className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-zinc-900 transition hover:bg-amber-600 hover:shadow-md active:bg-amber-700"
                     >
                       Comprar
                     </button>
@@ -189,7 +210,7 @@ export default function ShopPage() {
                     <button
                       type="button"
                       onClick={() => handleEquip(item.id)}
-                      className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:border-amber-400 hover:bg-amber-100 hover:text-amber-950 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-amber-500/60 dark:hover:bg-amber-500/20 dark:hover:text-amber-100"
                     >
                       Equipar
                     </button>
@@ -201,7 +222,7 @@ export default function ShopPage() {
                         const entry = (Object.entries(equipped) as [EquipSlot, string | null][]).find(([, id]) => id === item.id);
                         if (entry) unequipSlot(entry[0]);
                       }}
-                      className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-400"
+                      className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-sm font-medium text-amber-700 transition hover:border-amber-600 hover:bg-amber-500/35 dark:text-amber-400 dark:hover:bg-amber-500/25"
                     >
                       Equipado
                     </button>
@@ -219,45 +240,50 @@ export default function ShopPage() {
         </p>
       )}
 
-      <section className="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/30">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Inventario</h2>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Todo lo comprado queda en tu inventario. Equipá y desequipá cuando quieras.
-        </p>
-        {purchased.length === 0 ? (
-          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-            Aún no compraste nada. Jugá para ganar MAD Coins.
+      {showInventory && (
+        <section
+          id="inventario-tienda"
+          className="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/30"
+        >
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Inventario</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Todo lo comprado queda en tu inventario. Equipá y desequipá cuando quieras.
           </p>
-        ) : (
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {purchasedSorted.map((id) => {
-              const item = getShopItemById(id);
-              if (!item) return null;
-              const isEquipped = Object.values(equipped).includes(id);
-              return (
-                <li
-                  key={id}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-600 dark:bg-zinc-800"
-                >
-                  <span className="text-xl">{item.icon ?? item.value}</span>
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{item.name}</span>
-                  {isEquipped ? (
-                    <span className="text-xs text-amber-600 dark:text-amber-400">Equipado</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleEquip(id)}
-                      className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
-                    >
-                      Equipar
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+          {purchased.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+              Aún no compraste nada. Jugá para ganar MAD Coins.
+            </p>
+          ) : (
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {purchasedSorted.map((id) => {
+                const item = getShopItemById(id);
+                if (!item) return null;
+                const isEquipped = Object.values(equipped).includes(id);
+                return (
+                  <li
+                    key={id}
+                    className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 transition hover:border-amber-400/70 hover:bg-amber-50 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:border-amber-500/40 dark:hover:bg-amber-500/10"
+                  >
+                    <span className="text-xl">{item.icon ?? item.value}</span>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{item.name}</span>
+                    {isEquipped ? (
+                      <span className="text-xs text-amber-600 dark:text-amber-400">Equipado</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleEquip(id)}
+                        className="rounded px-1.5 py-0.5 text-xs font-medium text-red-600 transition hover:bg-red-500/15 hover:underline dark:text-red-400 dark:hover:bg-red-500/20"
+                      >
+                        Equipar
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }

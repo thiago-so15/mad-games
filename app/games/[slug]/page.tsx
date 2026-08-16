@@ -14,11 +14,14 @@ export default async function GamePage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-3xl" role="img" aria-hidden>
-          {game.icon ?? "🎮"}
-        </span>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{game.name}</h1>
+      <div className="mb-6 flex max-w-xl flex-col items-center text-center">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl" role="img" aria-hidden>
+            {game.icon ?? "🎮"}
+          </span>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{game.name}</h1>
+        </div>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{game.description}</p>
       </div>
       {/* Container con tema oscuro forzado para que los juegos siempre tengan buen contraste */}
       <div className="game-container dark w-full rounded-2xl bg-zinc-900 p-6 text-zinc-100 shadow-xl">

@@ -17,7 +17,7 @@ export const GAMES_CATALOG: GameMeta[] = [
   {
     slug: "pong",
     name: "Ping Pong v2",
-    description: "Classic con power-ups, Vs AI, 2 jugadores o Survival. Palas dinámicas y rebotes.",
+    description: "Ping pong clásico: palas, rebotes y power-ups. Vs IA, 2 jugadores o Survival.",
     icon: "🏓",
     available: true,
     category: "arcade",

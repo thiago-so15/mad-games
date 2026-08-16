@@ -13,6 +13,7 @@ import { ShiftGame } from "@/components/games/Shift";
 import { OverloadGame } from "@/components/games/Overload";
 import { PolarGame } from "@/components/games/Polar";
 import { VoidGame } from "@/components/games/Void";
+import { GameLoadingScreen } from "@/components/GameLoadingScreen";
 
 const GAME_COMPONENTS: Record<string, React.ComponentType<{ slug: string }>> = {
   snake: SnakeGame,
@@ -37,5 +38,9 @@ interface GameRendererProps {
 export function GameRenderer({ slug }: GameRendererProps) {
   const Game = GAME_COMPONENTS[slug];
   if (!Game) return null;
-  return <Game slug={slug} />;
+  return (
+    <GameLoadingScreen slug={slug}>
+      <Game slug={slug} />
+    </GameLoadingScreen>
+  );
 }

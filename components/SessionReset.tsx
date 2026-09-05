@@ -9,7 +9,7 @@ export function SessionReset() {
   const resetSessionConsecutivePlays = useStore((s) => s.resetSessionConsecutivePlays);
 
   useEffect(() => {
-    if (pathname === "/" || pathname === "/games") {
+    if (pathname === "/arcade" || pathname === "/games") {
       resetSessionConsecutivePlays();
     }
   }, [pathname, resetSessionConsecutivePlays]);

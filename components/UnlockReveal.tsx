@@ -17,7 +17,7 @@ export function UnlockReveal() {
     doneRef.current = true;
     const t = setTimeout(() => {
       setUnlockRevealDone();
-      router.push("/");
+      router.push("/arcade");
       doneRef.current = false;
     }, TOTAL_MS);
     return () => clearTimeout(t);

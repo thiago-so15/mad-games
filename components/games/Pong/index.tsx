@@ -152,7 +152,7 @@ export function PongGame({ slug }: PongGameProps) {
         survivalTimeMs={state.survivalTimeMs || undefined}
         bestSurvivalTimeMs={pongStats.bestSurvivalTimeMs || undefined}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

@@ -82,7 +82,7 @@ export function DodgeGame({ slug }: DodgeGameProps) {
         survivalTimeMs={state.survivalTimeMs}
         bestTimeMs={Math.max(bestTimeMs, state.survivalTimeMs)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

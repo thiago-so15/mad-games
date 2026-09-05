@@ -8,7 +8,7 @@ import { useStore, getXpToNextLevel } from "@/lib/store";
 import { getShopItemById } from "@/lib/shop";
 
 const links = [
-  { href: "/", label: "Inicio" },
+  { href: "/arcade", label: "Inicio" },
   { href: "/games", label: "Juegos" },
   { href: "/shop", label: "Tienda" },
   { href: "/profile", label: "Perfil" },
@@ -58,7 +58,7 @@ export function Nav() {
       <div className="mx-auto max-w-6xl px-3 pb-2 pt-2 sm:px-6 sm:pb-0 sm:pt-0">
         <div className="flex h-11 items-center justify-between sm:h-14">
           <Link
-            href="/"
+            href="/arcade"
             className="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 transition-arcade hover-lift dark:text-white"
             aria-label="MAD GAMES - Inicio"
           >
@@ -75,7 +75,7 @@ export function Nav() {
           <ul className="hidden items-center gap-2 sm:flex">
             {links.map(({ href, label }) => {
               const isActive =
-                href === "/" ? pathname === "/" : pathname.startsWith(href);
+                href === "/arcade" ? pathname === "/arcade" : pathname.startsWith(href);
               return (
                 <li key={href} className="shrink-0">
                   <Link
@@ -94,6 +94,18 @@ export function Nav() {
           </ul>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+            >
+              Versiones
+            </Link>
+            <Link
+              href="/os"
+              className="hidden rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white sm:inline"
+            >
+              MAD OS
+            </Link>
             <Link
               href="/shop"
               className="flex items-center gap-1.5 rounded-full border border-amber-400/50 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 transition-arcade hover:bg-amber-500/20 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20 sm:text-sm"
@@ -127,7 +139,7 @@ export function Nav() {
           <ul className="mt-2 space-y-1 sm:hidden">
             {links.map(({ href, label }) => {
               const isActive =
-                href === "/" ? pathname === "/" : pathname.startsWith(href);
+                href === "/arcade" ? pathname === "/arcade" : pathname.startsWith(href);
               return (
                 <li key={href}>
                   <Link
@@ -144,6 +156,24 @@ export function Nav() {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                Versiones
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/os"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                MAD OS
+              </Link>
+            </li>
           </ul>
         )}
       </div>

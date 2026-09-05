@@ -110,7 +110,7 @@ export function SnakeGame({ slug }: SnakeGameProps) {
         bestScore={bestScore}
         mode={mode}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

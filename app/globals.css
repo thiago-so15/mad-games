@@ -303,3 +303,243 @@ html[data-performance="low"] * {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* ========== MAD OS ========== */
+html.mad-os-mode,
+html.mad-os-mode body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.mad-os,
+.mad-os[data-os-theme="dark"],
+html[data-os-theme="dark"] .mad-os {
+  height: 100%;
+  width: 100%;
+  color: var(--os-text);
+  font-size: calc(16px * var(--os-scale, 1));
+  --os-accent: #dc2626;
+  --os-accent-soft: rgba(220, 38, 38, 0.28);
+  --os-text: #f4f4f5;
+  --os-body-text: #f4f4f5;
+  --os-muted: #a1a1aa;
+  --os-panel: rgba(9, 9, 11, 0.94);
+  --os-content: rgba(9, 9, 11, 0.55);
+  --os-taskbar: rgba(9, 9, 11, 0.9);
+  --os-border: rgba(255, 255, 255, 0.12);
+  --os-hover: rgba(255, 255, 255, 0.08);
+  --os-wash: transparent;
+}
+
+.mad-os[data-os-theme="light"],
+html[data-os-theme="light"] .mad-os {
+  --os-accent: #dc2626;
+  --os-accent-soft: rgba(220, 38, 38, 0.18);
+  --os-text: #18181b;
+  --os-body-text: #f4f4f5;
+  --os-muted: #52525b;
+  --os-panel: rgba(250, 250, 250, 0.94);
+  --os-content: rgba(24, 24, 27, 0.94);
+  --os-taskbar: rgba(255, 255, 255, 0.92);
+  --os-border: rgba(24, 24, 27, 0.14);
+  --os-hover: rgba(0, 0, 0, 0.06);
+  --os-wash: rgba(255, 255, 255, 0.42);
+}
+
+.mad-os[data-os-theme="midnight"],
+html[data-os-theme="midnight"] .mad-os {
+  --os-accent: #3b82f6;
+  --os-accent-soft: rgba(59, 130, 246, 0.3);
+  --os-text: #e2e8f0;
+  --os-body-text: #e2e8f0;
+  --os-muted: #94a3b8;
+  --os-panel: rgba(15, 23, 42, 0.95);
+  --os-content: rgba(15, 23, 42, 0.78);
+  --os-taskbar: rgba(15, 23, 42, 0.94);
+  --os-border: rgba(96, 165, 250, 0.28);
+  --os-hover: rgba(96, 165, 250, 0.14);
+  --os-wash: rgba(37, 99, 235, 0.28);
+}
+
+.mad-os[data-os-theme="carbon"],
+html[data-os-theme="carbon"] .mad-os {
+  --os-accent: #ef4444;
+  --os-accent-soft: rgba(239, 68, 68, 0.22);
+  --os-text: #fafafa;
+  --os-body-text: #fafafa;
+  --os-muted: #a1a1aa;
+  --os-panel: rgba(0, 0, 0, 0.94);
+  --os-content: rgba(0, 0, 0, 0.78);
+  --os-taskbar: rgba(0, 0, 0, 0.92);
+  --os-border: rgba(255, 255, 255, 0.1);
+  --os-hover: rgba(255, 255, 255, 0.07);
+  --os-wash: rgba(0, 0, 0, 0.45);
+}
+
+.os-theme-wash {
+  background: var(--os-wash);
+}
+
+.os-window {
+  user-select: none;
+  background: var(--os-panel);
+  border-color: var(--os-border);
+  color: var(--os-text);
+}
+.os-window.os-window-focused {
+  border-color: color-mix(in srgb, var(--os-accent) 70%, var(--os-border));
+}
+.os-window-header {
+  border-color: var(--os-border);
+  background: color-mix(in srgb, var(--os-panel) 88%, black);
+  color: var(--os-text);
+}
+.os-window-body {
+  background: var(--os-content);
+  color: var(--os-body-text, var(--os-text));
+}
+.os-taskbar {
+  background: var(--os-taskbar);
+  border-color: var(--os-border);
+  color: var(--os-text);
+}
+.os-panel {
+  background: var(--os-panel);
+  border-color: var(--os-border);
+  color: var(--os-text);
+}
+.os-accent-fill {
+  background: var(--os-accent) !important;
+  color: #fff !important;
+}
+.os-accent-soft {
+  background: var(--os-accent-soft) !important;
+  box-shadow: inset 0 0 0 1px var(--os-accent);
+}
+
+.mad-os .os-muted {
+  color: var(--os-muted);
+}
+
+html[data-os-cursor="precision"],
+html[data-os-cursor="precision"] * {
+  cursor: crosshair;
+}
+
+html[data-os-cursor="glow"],
+html[data-os-cursor="glow"] * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23dc2626' opacity='0.45'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23ffffff'/%3E%3C/svg%3E") 12 12, auto;
+}
+
+html[data-os-fx="scanline"] .mad-os::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+html[data-os-fx="glow"] .os-window[aria-label] {
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.25), 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+html[data-os-anim="off"] .mad-os .os-anim,
+html[data-os-anim="off"] .mad-os .os-toast,
+html[data-os-anim="off"] .mad-os button,
+html[data-os-anim="off"] .mad-os .os-window {
+  animation: none !important;
+  transition: none !important;
+}
+
+.os-window textarea,
+.os-window input {
+  user-select: text;
+}
+
+.os-toast {
+  animation: os-toast-in 180ms ease-out;
+}
+
+@keyframes os-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wp-crimson-grid {
+  background:
+    linear-gradient(rgba(220, 38, 38, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 38, 38, 0.08) 1px, transparent 1px),
+    radial-gradient(ellipse at 20% 10%, rgba(220, 38, 38, 0.22), transparent 42%),
+    radial-gradient(ellipse at 80% 90%, rgba(127, 29, 29, 0.35), transparent 45%),
+    #070707;
+  background-size: 48px 48px, 48px 48px, auto, auto, auto;
+}
+
+.wp-void {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(220, 38, 38, 0.2), transparent 28%),
+    radial-gradient(ellipse at 50% 120%, rgba(24, 24, 27, 1), #000 70%);
+}
+
+.wp-signal {
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      rgba(220, 38, 38, 0.08) 0 12px,
+      transparent 12px 28px
+    ),
+    linear-gradient(180deg, #0a0a0a, #141414);
+}
+
+.wp-ember {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(220, 38, 38, 0.45), transparent 50%),
+    linear-gradient(180deg, #050505, #1a0a0a);
+}
+
+.wp-circuit {
+  background-color: #080808;
+  background-image:
+    linear-gradient(rgba(244, 244, 245, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 244, 245, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 12% 20%, rgba(220, 38, 38, 0.18), transparent 22%);
+  background-size: 72px 72px, 72px 72px, auto;
+}
+
+.wp-aurora {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(248, 113, 113, 0.25), transparent 40%),
+    radial-gradient(ellipse at 90% 20%, rgba(127, 29, 29, 0.35), transparent 42%),
+    linear-gradient(180deg, #09090b, #18181b);
+}
+
+@media (max-width: 767px) {
+  .os-window {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: calc(100% - 48px) !important;
+    border-radius: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-toast,
+  .os-anim {
+    animation: none !important;
+    transition: none !important;
+  }
+}

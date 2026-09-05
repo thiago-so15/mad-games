@@ -119,7 +119,7 @@ export function BreakoutGame({ slug }: BreakoutGameProps) {
         bestScore={Math.max(bestScore, state.score)}
         onContinue={handleContinue}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

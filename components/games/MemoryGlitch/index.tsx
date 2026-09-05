@@ -68,7 +68,7 @@ export function MemoryGlitchGame({ slug }: { slug: string }) {
         rounds={state.round}
         bestRounds={Math.max(best, state.round)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

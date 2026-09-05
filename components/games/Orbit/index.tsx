@@ -79,7 +79,7 @@ export function OrbitGame({ slug }: OrbitGameProps) {
         score={state.score}
         bestScore={Math.max(best, state.score)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

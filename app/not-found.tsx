@@ -2,14 +2,15 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">404</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">No encontramos esta página.</p>
+    <div className="flex h-dvh flex-col items-center justify-center bg-black text-center text-zinc-100">
+      <p className="text-xs tracking-[0.4em] text-red-500">MAD OS</p>
+      <h1 className="mt-4 text-2xl font-semibold">File not found</h1>
+      <p className="mt-2 text-sm text-zinc-400">This path does not exist on this machine.</p>
       <Link
         href="/"
-        className="mt-6 text-amber-600 hover:underline dark:text-amber-400"
+        className="mt-6 rounded-md bg-red-600 px-3 py-1.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
       >
-        Volver al inicio
+        Elegir versión
       </Link>
     </div>
   );

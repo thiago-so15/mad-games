@@ -70,7 +70,7 @@ export function ShiftGame({ slug }: { slug: string }) {
         survivalTimeMs={state.survivalTimeMs}
         bestTimeMs={Math.max(best, state.survivalTimeMs)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

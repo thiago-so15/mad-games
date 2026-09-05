@@ -84,7 +84,7 @@ export function ReactorGame({ slug }: ReactorGameProps) {
         bestCombo={state.bestCombo}
         bestPulsesEver={Math.max(bestPulses, state.pulsesSurvived)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

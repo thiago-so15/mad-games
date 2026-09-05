@@ -79,7 +79,7 @@ export function OverloadGame({ slug }: { slug: string }) {
         bestCombo={state.bestCombo}
         bestScoreEver={Math.max(best, state.score)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

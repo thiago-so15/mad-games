@@ -70,7 +70,7 @@ export function CoreDefenseGame({ slug }: { slug: string }) {
         streak={state.streak}
         bestStreak={Math.max(best, state.streak)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

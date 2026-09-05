@@ -70,7 +70,7 @@ export function PulseDashGame({ slug }: { slug: string }) {
         distance={state.distance}
         bestDistance={Math.max(best, state.distance)}
         onRetry={handleRetry}
-        backHref={launchedFromHome ? "/" : "/games"}
+        backHref={launchedFromHome ? "/arcade" : "/games"}
         backLabel={launchedFromHome ? "Volver al inicio" : "Volver al catalogo"}
       />
     );

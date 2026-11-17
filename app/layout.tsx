@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { StoreHydration } from "@/components/StoreHydration";
 import { UnlockReveal } from "@/components/UnlockReveal";
 import { UnlockMessage } from "@/components/UnlockMessage";
@@ -42,6 +43,7 @@ export default function RootLayout({
           <UnlockMessage />
           <AppFrame>{children}</AppFrame>
         </EffectsProvider>
+        <Analytics />
       </body>
     </html>
   );
